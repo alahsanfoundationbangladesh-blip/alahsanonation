@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { AuthContext } from "../context/AuthProvider";
 import { DEFAULT_BRANDING, DEFAULT_TEAM, STORAGE_KEYS, useBranding } from "../context/BrandingContext";
+import { isTextScreenshotData } from "../utils/textFormatters";
 
 import { API_BASE as API } from "../utils/apiConfig";
 const tabs = [
@@ -648,22 +649,53 @@ const AdminSettings = () => {
                 {form.logo && <div className="p-3 bg-gray-50 rounded-xl inline-block mt-2"><img src={form.logo} alt="লোগোর পূর্বরূপ" className="h-16 w-16 rounded-xl object-contain bg-white p-1 border" /></div>}
               </div>
 
-              <label className="block font-semibold">হোমপেজ ওভারভিউ সেকশনের শিরোনাম
-                <input className={inputClass} maxLength="120" value={form.overviewTitle || ""} placeholder="আল আহসান ফাউন্ডেশন সম্পর্কে" onChange={(e) => setForm({ ...form, overviewTitle: e.target.value })} />
+              <label className="block font-semibold">হোমপেজ ওভারভিউ / লক্ষ্য সেকশনের শিরোনাম
+                <input className={inputClass} maxLength="120" value={form.overviewTitle || ""} placeholder="আমাদের লক্ষ্য" onChange={(e) => setForm({ ...form, overviewTitle: e.target.value })} />
+                <span className="text-xs text-gray-400 mt-1 block">হোমপেজের ওভারভিউ সেকশনে বড় করে যে শিরোনাম দেখাবে (যেমন: &apos;আমাদের লক্ষ্য&apos;)।</span>
               </label>
 
-              <label className="block font-semibold">হোমপেজ ওভারভিউ বর্ণনা
-                <textarea rows="4" maxLength="3000" className={inputClass} value={form.overview || ""} onChange={(e) => setForm({ ...form, overview: e.target.value })} />
+              <label className="block font-semibold">হোমপেজ ওভারভিউ ও লক্ষ্যের বিস্তারিত লেখা
+                <textarea rows="6" maxLength="3000" className={inputClass} value={form.overview || ""} placeholder="ফাউন্ডেশনের মূল লক্ষ্য, ভিশন ও কার্যক্রম সম্পর্কে লিখুন..." onChange={(e) => setForm({ ...form, overview: e.target.value })} />
+                <span className="text-xs text-gray-400 mt-1 block">প্যারাগ্রাফ ও পয়েন্ট (যেমন: &apos;অসহায়দের পাশে দাঁড়ানো: বিস্তারিত…&apos;) আকারে লিখলে তা স্বয়ংক্রিয়ভাবে সাজানো বুলেট পয়েন্ট এবং প্যারাগ্রাফে সুন্দরভাবে প্রদর্শিত হবে।</span>
               </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label className="block font-semibold text-sm">বাটন টেক্সট
+                  <input className={inputClass} maxLength="80" value={form.overviewButtonText || ""} placeholder="আমাদের কার্যক্রম দেখুন" onChange={(e) => setForm((current) => ({ ...current, overviewButtonText: e.target.value }))} />
+                </label>
+                <label className="block font-semibold text-sm">বাটন লিংক
+                  <input className={inputClass} maxLength="200" placeholder="/campaigns" value={form.overviewButtonLink || ""} onChange={(e) => setForm((current) => ({ ...current, overviewButtonLink: e.target.value }))} />
+                </label>
+              </div>
 
               <div className="space-y-2">
-                <label className="block font-semibold">ওভারভিউ অংশের ছবি</label>
+                <label className="block font-semibold">ওভারভিউ ও লক্ষ্য অংশের ছবি (Photo)</label>
                 <div className="flex flex-col sm:flex-row gap-3 items-center">
                   <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, (value) => setForm((current) => ({ ...current, overviewImage: value })))} className={inputClass} />
                   <span className="text-xs text-gray-400">অথবা URL:</span>
                   <input type="text" placeholder="https://..." value={form.overviewImage || ""} onChange={(e) => setForm({ ...form, overviewImage: e.target.value })} className={inputClass} />
                 </div>
-                {form.overviewImage && <img src={form.overviewImage} alt="ওভারভিউ ছবির পূর্বরূপ" className="max-h-48 rounded-xl object-cover border mt-2" />}
+                <p className="text-xs text-gray-500">এখানে মানবিক সহায়তা বা কার্যক্রমের আসল ছবি দিন। লেখার কোনো স্ক্রিনশট দেওয়ার প্রয়োজন নেই, কারণ লেখাগুলো সরাসরি টেক্সট হিসেবে সুন্দরভাবে প্রদর্শিত হবে।</p>
+                {isTextScreenshotData(form.overviewImage) && (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-900 text-xs p-3.5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2">
+                    <div>
+                      <span className="font-semibold block">⚠️ পূর্বে লেখার একটি স্ক্রিনশট যুক্ত ছিল</span>
+                      <span>স্ক্রিনশটের বদলে সরাসরি আসল ফটো দেখাতে নিচের বাটনে ক্লিক করুন অথবা নতুন কোনো ছবি আপলোড করুন।</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setForm((curr) => ({ ...curr, overviewImage: "https://i.ibb.co.com/hFKT7MM/pexels-photo-6995106.webp" }))}
+                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg text-xs shrink-0 self-start sm:self-auto shadow-sm"
+                    >
+                      ডিফল্ট ছবি ব্যবহার করুন
+                    </button>
+                  </div>
+                )}
+                {form.overviewImage && !isTextScreenshotData(form.overviewImage) && (
+                  <div className="mt-2 relative inline-block">
+                    <img src={form.overviewImage} alt="ওভারভিউ ছবির পূর্বরূপ" className="max-h-48 rounded-xl object-cover border" />
+                  </div>
+                )}
               </div>
 
               <button disabled={busy} className="rounded-xl bg-primary px-6 py-3 font-semibold text-white shadow hover:opacity-90 disabled:opacity-60">
@@ -951,12 +983,26 @@ const AdminSettings = () => {
                   <textarea rows="3" className={inputClass} value={about.missionText2 || ""} onChange={(e) => updateAbout("missionText2", e.target.value)} />
                 </label>
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold">লক্ষ্য সেকশনের ছবি</label>
+                  <label className="block text-sm font-semibold">লক্ষ্য সেকশনের ছবি (Photo)</label>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, (val) => updateAbout("missionImage", val))} className="text-sm" />
                     <input type="text" placeholder="ছবির URL" value={about.missionImage || ""} onChange={(e) => updateAbout("missionImage", e.target.value)} className={inputClass} />
                   </div>
-                  {about.missionImage && <img src={about.missionImage} alt="Mission" className="max-h-40 rounded-xl object-cover border mt-2" />}
+                  {isTextScreenshotData(about.missionImage) && (
+                    <div className="bg-amber-50 border border-amber-200 text-amber-900 text-xs p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-2">
+                      <span>⚠️ পূর্বে লেখার স্ক্রিনশট ছিল। আসল ফটো প্রদর্শন করতে ডিফল্ট ছবি নির্বাচন করুন:</span>
+                      <button
+                        type="button"
+                        onClick={() => updateAbout("missionImage", "https://i.ibb.co.com/hFKT7MM/pexels-photo-6995106.webp")}
+                        className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg text-xs shrink-0"
+                      >
+                        ডিফল্ট ছবি ব্যবহার করুন
+                      </button>
+                    </div>
+                  )}
+                  {about.missionImage && !isTextScreenshotData(about.missionImage) && (
+                    <img src={about.missionImage} alt="Mission" className="max-h-40 rounded-xl object-cover border mt-2" />
+                  )}
                 </div>
               </div>
 
