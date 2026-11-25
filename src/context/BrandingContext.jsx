@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types, react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { getApiUrl } from "../utils/apiConfig";
 
 export const DEFAULT_SLIDES = [
   {
@@ -314,7 +315,7 @@ export function BrandingProvider({ children }) {
   const [campaigns, setCampaigns] = useState(loadInitialCampaigns);
 
   useEffect(() => {
-    fetch("/.netlify/functions/api?action=public-settings")
+    fetch(getApiUrl("public-settings"))
       .then((response) => (response.ok ? response.json() : null))
       .then((value) => {
         if (value && typeof value === "object") {
@@ -327,7 +328,7 @@ export function BrandingProvider({ children }) {
       })
       .catch(() => {});
 
-    fetch("/.netlify/functions/api?action=public-campaigns")
+    fetch(getApiUrl("public-campaigns"))
       .then((response) => (response.ok ? response.json() : null))
       .then((value) => {
         if (Array.isArray(value) && value.length > 0) {
@@ -358,7 +359,7 @@ export function BrandingProvider({ children }) {
 
     // 3. Attempt server sync in the background
     try {
-      const response = await fetch("/.netlify/functions/api?action=admin", {
+      const response = await fetch(getApiUrl("admin"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -390,7 +391,7 @@ export function BrandingProvider({ children }) {
     setCampaigns(next);
 
     try {
-      const response = await fetch("/.netlify/functions/api?action=admin", {
+      const response = await fetch(getApiUrl("admin"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

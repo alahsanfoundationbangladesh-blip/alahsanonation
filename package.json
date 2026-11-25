@@ -12,6 +12,7 @@
   "dependencies": {
     "@netlify/blobs": "^11.1.11",
     "@netlify/identity": "^2.0.1",
+    "@supabase/supabase-js": "^2.119.2",
     "aos": "^2.3.4",
     "localforage": "^1.10.0",
     "match-sorter": "^8.0.0",

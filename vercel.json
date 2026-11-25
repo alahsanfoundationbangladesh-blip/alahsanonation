@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/.netlify/functions/api",
+      "destination": "/api"
+    },
+    {
+      "source": "/((?!api/|api$).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
