@@ -101,6 +101,13 @@ const AdminSettings = () => {
 
   const [loading] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [emailConfigStatus, setEmailConfigStatus] = useState({
+    configured: false,
+    sender: null,
+    source: "none",
+  });
+  const [emailForm, setEmailForm] = useState({ apiKey: "", fromEmail: "" });
+  const [showEmailConfigModal, setShowEmailConfigModal] = useState(false);
   const [newExpense, setNewExpense] = useState({ title: "", category: "", amount: "", note: "" });
   const inputClass = "mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 outline-primary";
 
@@ -147,6 +154,16 @@ const AdminSettings = () => {
         }
         if (Array.isArray(data.campaigns) && data.campaigns.length > 0) {
           setCampaignList(data.campaigns);
+        }
+        if (data.emailConfigured !== undefined) {
+          setEmailConfigStatus({
+            configured: Boolean(data.emailConfigured),
+            sender: data.emailSender || null,
+            source: data.emailConfigSource || "none",
+          });
+          if (data.emailSender) {
+            setEmailForm((prev) => ({ ...prev, fromEmail: data.emailSender }));
+          }
         }
       }
     } catch (error) {
@@ -466,6 +483,31 @@ const AdminSettings = () => {
     } catch (_err) {
       console.info(_err);
       toast.success(action === "verify-donation" ? "অনুদান সফলভাবে যাচাই ও অনুমোদিত হয়েছে (লোকাল সংরক্ষণ)।" : "অনুদান বাতিল করা হয়েছে (লোকাল সংরক্ষণ)।");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveEmailConfig = async (e) => {
+    e.preventDefault();
+    if (!emailForm.apiKey && !emailForm.fromEmail) {
+      toast.error("Resend API Key এবং প্রেরক ইমেইল পূরণ করুন।");
+      return;
+    }
+    setBusy(true);
+    const toastId = toast.loading("ইমেইল কনফিগারেশন সংরক্ষণ হচ্ছে…");
+    try {
+      const result = await postAdmin({
+        action: "save-email-config",
+        apiKey: emailForm.apiKey,
+        fromEmail: emailForm.fromEmail,
+      });
+      toast.success(result.message || "ইমেইল সেটিংস সংরক্ষিত হয়েছে!", { id: toastId });
+      setShowEmailConfigModal(false);
+      setEmailForm((prev) => ({ ...prev, apiKey: "" }));
+      await refresh();
+    } catch (err) {
+      toast.error(err.message || "ইমেইল সেটিংস সংরক্ষণ করা যায়নি।", { id: toastId });
     } finally {
       setBusy(false);
     }
@@ -1305,9 +1347,111 @@ const AdminSettings = () => {
           {!loading && section === "donations" && (
             <div className="space-y-5">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">১০. অনুদান যাচাই ও রসিদ</h2>
-                <p className="mt-1 text-gray-600 text-sm">TrxID যাচাই করুন। অনুমোদনের পর রসিদ ইমেইল পাঠানোর অবস্থা দেখা যাবে; ব্যর্থ হলে পুনরায় পাঠান।</p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">১০. অনুদান যাচাই ও রসিদ</h2>
+                    <p className="mt-1 text-gray-600 text-sm">TrxID যাচাই করুন। অনুমোদনের পর স্বয়ংক্রিয় রসিদ ইমেইল যাবে।</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailConfigModal(true)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20"
+                  >
+                    ⚙️ ইমেইল সেটিংস {emailConfigStatus.configured ? "হালনাগাদ" : "সেট করুন"}
+                  </button>
+                </div>
               </div>
+
+              {/* Email Gateway Status Banner */}
+              {!emailConfigStatus.configured ? (
+                <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <strong className="block font-semibold">⚠️ ইনভয়েস ইমেইল সার্ভিস এখনো কনফিগার করা হয়নি</strong>
+                      <p className="text-xs text-amber-800 mt-1">
+                        অনুমোদনের পর গ্রাহককে স্বয়ংক্রিয় রসিদ পাঠাতে Resend API Key ও From Email প্রয়োজন। অ্যাডমিন প্যানেল থেকে অথবা Vercel Environment Variables-এ সেট করতে পারেন।
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowEmailConfigModal(true)}
+                      className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-amber-700"
+                    >
+                      এখনই সেট করুন
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-green-200 bg-green-50/70 px-4 py-2.5 text-xs text-green-900 flex items-center justify-between">
+                  <span>✅ স্বয়ংক্রিয় ইনভয়েস ইমেইল সক্রিয় ({emailConfigStatus.sender})</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailConfigModal(true)}
+                    className="underline text-green-800 hover:text-green-950 font-medium"
+                  >
+                    পরিবর্তন
+                  </button>
+                </div>
+              )}
+
+              {/* Email Config Modal */}
+              {showEmailConfigModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                  <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border">
+                    <div className="flex items-center justify-between border-b pb-3">
+                      <h3 className="text-lg font-bold text-gray-800">স্বয়ংক্রিয় ইনভয়েস ইমেইল কনফিগারেশন</h3>
+                      <button
+                        type="button"
+                        onClick={() => setShowEmailConfigModal(false)}
+                        className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <form onSubmit={saveEmailConfig} className="space-y-4 pt-4">
+                      <p className="text-xs text-gray-600">
+                        এখানে Resend API Key ও অনুমোদিত প্রেরক ইমেইল বসালে সরাসরি ক্লাউড ডেটাবেসে সংরক্ষিত হবে এবং সাথে সাথে ইনভয়েস ইমেইল পাঠানো শুরু হবে।
+                      </p>
+                      <label className="block text-xs font-semibold text-gray-700">
+                        Resend API Key
+                        <input
+                          type="password"
+                          placeholder="re_xxxxxxxxxxxxxxxxx"
+                          className={inputClass}
+                          value={emailForm.apiKey}
+                          onChange={(e) => setEmailForm({ ...emailForm, apiKey: e.target.value })}
+                        />
+                      </label>
+                      <label className="block text-xs font-semibold text-gray-700">
+                        প্রেরক ইমেইল (From Email)
+                        <input
+                          type="text"
+                          placeholder="যেমন: donation@alahsanfoundation.org অথবা onboarding@resend.dev"
+                          className={inputClass}
+                          value={emailForm.fromEmail}
+                          onChange={(e) => setEmailForm({ ...emailForm, fromEmail: e.target.value })}
+                        />
+                      </label>
+                      <div className="flex justify-end gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowEmailConfigModal(false)}
+                          className="rounded-lg border px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                        >
+                          বাতিল
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={busy}
+                          className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-60"
+                        >
+                          {busy ? "সংরক্ষণ হচ্ছে…" : "সংরক্ষণ করুন"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
 
               {pendingDonations.length === 0 && (
                 <p className="rounded-xl bg-gray-50 p-5 text-gray-600 text-sm">যাচাইয়ের অপেক্ষায় কোনো অনুদান নেই।</p>
@@ -1356,11 +1500,16 @@ const AdminSettings = () => {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          emailStatus === "sent" ? "bg-green-100 text-green-800" : emailStatus === "failed" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"
-                        }`}>
-                          {emailStatusText(emailStatus)}
-                        </span>
+                        <div className="text-right">
+                          <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+                            emailStatus === "sent" ? "bg-green-100 text-green-800" : emailStatus === "failed" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"
+                          }`}>
+                            {emailStatusText(emailStatus)}
+                          </span>
+                          {emailStatus === "failed" && donation.emailError && (
+                            <p className="mt-1 text-[11px] text-red-600 max-w-xs">{donation.emailError}</p>
+                          )}
+                        </div>
                         {donation.status === "approved" && emailStatus !== "sent" && (
                           <button disabled={busy} onClick={() => resendReceipt(donation)} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-60">
                             রসিদ পুনরায় পাঠান
