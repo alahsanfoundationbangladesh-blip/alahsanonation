@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { STORAGE_KEYS, useBranding } from "../context/BrandingContext";
+import { getApiUrl } from "../utils/apiConfig";
 
 const paymentNumber = "8801312515643";
 
@@ -49,7 +50,7 @@ const DonateMoney = () => {
       } catch { /* ignore */ }
 
       try {
-        const dynamic = await fetch("/.netlify/functions/api?action=public-campaigns").then((res) => (res.ok ? res.json() : null));
+        const dynamic = await fetch(getApiUrl("public-campaigns")).then((res) => (res.ok ? res.json() : null));
         if (Array.isArray(dynamic) && dynamic.length > 0) {
           setCampaigns(dynamic);
           return;
@@ -98,7 +99,7 @@ const DonateMoney = () => {
 
     // 2. Submit to server API
     try {
-      const response = await fetch("/.netlify/functions/api?action=donation", {
+      const response = await fetch(getApiUrl("donation"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, campaignTitle: selected?.title || "" }),

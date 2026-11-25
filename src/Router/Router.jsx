@@ -17,6 +17,7 @@ import PrivateRoute from "./PrivateRoute";
 import AdminRoute from "./AdminRoute";
 import AdminSettings from "../Pages/AdminSettings";
 import DonateMoney from "../Pages/DonateMoney";
+import { getApiUrl } from "../utils/apiConfig";
 
 const router = createBrowserRouter(
   [
@@ -34,7 +35,7 @@ const router = createBrowserRouter(
           element: <Campaigns />,
           loader: async () => {
             try {
-              const dynamic = await fetch("/.netlify/functions/api?action=public-campaigns");
+              const dynamic = await fetch(getApiUrl("public-campaigns"));
               const campaigns = await dynamic.json();
               if (Array.isArray(campaigns) && campaigns.length > 0) return campaigns;
             } catch { /* Use cached or static list */ }
@@ -106,7 +107,7 @@ const router = createBrowserRouter(
           loader: async ({ params }) => {
             let data = null;
             try {
-              const dynamic = await fetch("/.netlify/functions/api?action=public-campaigns");
+              const dynamic = await fetch(getApiUrl("public-campaigns"));
               const result = await dynamic.json();
               if (Array.isArray(result) && result.length > 0) data = result;
             } catch { /* Use local or static list */ }

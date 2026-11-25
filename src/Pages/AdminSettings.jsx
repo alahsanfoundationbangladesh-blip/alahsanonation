@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { AuthContext } from "../context/AuthProvider";
 import { DEFAULT_BRANDING, DEFAULT_TEAM, STORAGE_KEYS, useBranding } from "../context/BrandingContext";
 
-const API = "/.netlify/functions/api";
+import { API_BASE as API } from "../utils/apiConfig";
 const tabs = [
   ["overview", "১. সাইট পরিচিতি ও থিম"],
   ["hero", "২. হিরো স্লাইডার"],
