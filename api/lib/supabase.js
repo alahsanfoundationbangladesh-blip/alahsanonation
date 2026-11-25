@@ -25,7 +25,8 @@ export function getSupabase() {
         autoRefreshToken: false,
       },
     });
-    console.info("[API] Supabase PostgreSQL connection initialized.");
+    const keyType = process.env.SUPABASE_SERVICE_ROLE_KEY ? "service_role" : "anon";
+    console.info(`[API] Supabase PostgreSQL connection initialized (${keyType} key).`);
   }
   return _client;
 }
