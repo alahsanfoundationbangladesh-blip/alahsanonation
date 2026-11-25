@@ -66,7 +66,7 @@ export const DEFAULT_ABOUT = {
   headerTitle: "আমাদের সম্পর্কে",
   headerSubtitle: "আমাদের লক্ষ্য, স্বপ্ন এবং এই উদ্যোগের পেছনের মানুষদের সম্পর্কে জানুন।",
   missionTitle: "আমাদের লক্ষ্য",
-  missionText1: "এর লক্ষ্য হলো শীতবস্ত্র ও প্রয়োজনীয় সহায়তা পৌঁছে দিয়ে অসহায় মানুষের পাশে দাঁড়ানো এবং সবাইকে মানবিক কাজে অংশ নেওয়ার সুযোগ করে দেওয়া।",
+  missionText1: "আল-আহসান ফাউন্ডেশন বাংলাদেশ হলো একটি অলাভজনক ও জনকল্যাণমূলক সংস্থা, যার মূল লক্ষ্য মানবতার সেবা করা এবং সুবিধাবঞ্চিত মানুষের জীবনমান উন্নয়নে কাজ করা।\n\n• অসহায় ও সুবিধাবঞ্চিতদের পাশে দাঁড়ানো: এতিম, অবহেলিত ও দরিদ্র মানুষের মৌলিক অধিকার নিশ্চিত করা এবং তাদের আত্মমর্যাদা রক্ষা করা।\n• শিক্ষা ও মানবিক সহায়তা: দরিদ্র শিক্ষার্থীদের শিক্ষা সহায়তা দেওয়া, অসহায়দের খাদ্য ও শীতবস্ত্র বিতরণ, চিকিৎসা সেবা প্রদান, বিশুদ্ধ পানির ব্যবস্থা এবং দুর্যোগে জরুরি ত্রাণ কার্যক্রম পরিচালনা করা।\n• ডিজিটাল ও প্রযুক্তিগত উদ্যোগ: আধুনিক প্রযুক্তি ও এআই সহায়ক প্ল্যাটফর্ম ব্যবহার করে মানুষের দৈনন্দিন কাজ, শিক্ষা ও গবেষণাকে আরও সহজতর করা।",
   missionText2: "আমরা বিশ্বাস করি, সহমর্মিতা ও সম্মিলিত উদ্যোগ মানুষের জীবনে ইতিবাচক পরিবর্তন আনে। শিক্ষা, স্বাস্থ্যসেবা কিংবা নিত্যপ্রয়োজনীয় সহায়তা—প্রতিটি অবদানই মূল্যবান।",
   missionImage: "https://i.ibb.co.com/hFKT7MM/pexels-photo-6995106.webp",
   visionTitle: "আমাদের স্বপ্ন",
@@ -222,11 +222,11 @@ export const DEFAULT_BRANDING = {
   siteName: "আল আহসান ফাউন্ডেশন",
   logo: "/Warm-Hearts-Initiative.png",
   primaryColor: "#4A90E2",
-  overviewTitle: "আল আহসান ফাউন্ডেশন সম্পর্কে",
-  overview: "মানবিক সহায়তা ও শীতবস্ত্র বিতরণের মাধ্যমে সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াই।",
+  overviewTitle: "আমাদের লক্ষ্য",
+  overview: "আল-আহসান ফাউন্ডেশন বাংলাদেশ হলো একটি অলাভজনক ও জনকল্যাণমূলক সংস্থা, যার মূল লক্ষ্য মানবতার সেবা করা এবং সুবিধাবঞ্চিত মানুষের জীবনমান উন্নয়নে কাজ করা।\n\n• অসহায় ও সুবিধাবঞ্চিতদের পাশে দাঁড়ানো: এতিম, অবহেলিত ও দরিদ্র মানুষের মৌলিক অধিকার নিশ্চিত করা এবং তাদের আত্মমর্যাদা রক্ষা করা।\n• শিক্ষা ও মানবিক সহায়তা: দরিদ্র শিক্ষার্থীদের শিক্ষা সহায়তা দেওয়া, অসহায়দের খাদ্য ও শীতবস্ত্র বিতরণ, চিকিৎসা সেবা প্রদান, বিশুদ্ধ পানির ব্যবস্থা এবং দুর্যোগে জরুরি ত্রাণ কার্যক্রম পরিচালনা করা।\n• ডিজিটাল ও প্রযুক্তিগত উদ্যোগ: আধুনিক প্রযুক্তি ও এআই সহায়ক প্ল্যাটফর্ম ব্যবহার করে মানুষের দৈনন্দিন কাজ, শিক্ষা ও গবেষণাকে আরও সহজতর করা।",
   overviewImage: "https://i.ibb.co.com/hFKT7MM/pexels-photo-6995106.webp",
-  overviewButtonText: "আমাদের সম্পর্কে আরও জানুন",
-  overviewButtonLink: "/about",
+  overviewButtonText: "আমাদের কার্যক্রম দেখুন",
+  overviewButtonLink: "/campaigns",
   navHomeText: "হোম",
   navCampaignsText: "অনুদান কার্যক্রম",
   navDonateText: "অর্থ অনুদান",
@@ -268,15 +268,50 @@ export const STORAGE_KEYS = {
   EXPENSES: "alahsan-expenses",
 };
 
+const isPunctuationOnly = (str) => typeof str === "string" && /^[\s,.'"\-_।]*$/.test(str);
+const isTextScreenshotData = (str) =>
+  typeof str === "string" &&
+  (str.startsWith("data:image/webp;base64,UklGRtaeAQB") ||
+   str.startsWith("data:image/webp;base64,UklGRnC/AQB"));
+
 const mergeWithDefaults = (parsed) => {
   if (!parsed || typeof parsed !== "object") return DEFAULT_BRANDING;
+
+  const rawOverviewTitle = parsed.overviewTitle;
+  const safeOverviewTitle =
+    !rawOverviewTitle || isPunctuationOnly(rawOverviewTitle)
+      ? (parsed.about?.missionTitle || DEFAULT_BRANDING.overviewTitle)
+      : rawOverviewTitle;
+
+  const rawOverview = parsed.overview;
+  const safeOverview =
+    !rawOverview || isPunctuationOnly(rawOverview)
+      ? (parsed.about?.missionText1 || DEFAULT_BRANDING.overview)
+      : rawOverview;
+
+  const safeOverviewImage = isTextScreenshotData(parsed.overviewImage)
+    ? DEFAULT_BRANDING.overviewImage
+    : (parsed.overviewImage || DEFAULT_BRANDING.overviewImage);
+
+  const safeMissionImage = isTextScreenshotData(parsed.about?.missionImage)
+    ? DEFAULT_ABOUT.missionImage
+    : (parsed.about?.missionImage || DEFAULT_ABOUT.missionImage);
+
   return {
     ...DEFAULT_BRANDING,
     ...parsed,
+    overviewTitle: safeOverviewTitle,
+    overview: safeOverview,
+    overviewImage: safeOverviewImage,
+    overviewButtonText: parsed.overviewButtonText || DEFAULT_BRANDING.overviewButtonText,
+    overviewButtonLink: parsed.overviewButtonLink || DEFAULT_BRANDING.overviewButtonLink,
     heroSlides: Array.isArray(parsed.heroSlides) ? parsed.heroSlides : DEFAULT_SLIDES,
     about: {
       ...DEFAULT_ABOUT,
       ...(parsed.about || {}),
+      missionTitle: (!parsed.about?.missionTitle || isPunctuationOnly(parsed.about?.missionTitle)) ? DEFAULT_ABOUT.missionTitle : parsed.about.missionTitle,
+      missionText1: (!parsed.about?.missionText1 || isPunctuationOnly(parsed.about?.missionText1)) ? DEFAULT_ABOUT.missionText1 : parsed.about.missionText1,
+      missionImage: safeMissionImage,
       teamMembers: Array.isArray(parsed.about?.teamMembers)
         ? parsed.about.teamMembers
         : (Array.isArray(parsed.teamMembers) ? parsed.teamMembers : DEFAULT_TEAM),

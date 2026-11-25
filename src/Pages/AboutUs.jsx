@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { useBranding } from "../context/BrandingContext";
+import { resolveMissionPhoto, formatMissionContent } from "../utils/textFormatters";
 
 const AboutUs = () => {
   const { settings } = useBranding();
@@ -8,6 +9,10 @@ const AboutUs = () => {
   const teamMembers = Array.isArray(about.teamMembers) && about.teamMembers.length > 0
     ? about.teamMembers
     : (Array.isArray(settings.teamMembers) ? settings.teamMembers : []);
+
+  const rawMission = about.missionText1 || settings.overview || "আল-আহসান ফাউন্ডেশন বাংলাদেশ হলো একটি অলাভজনক ও জনকল্যাণমূলক সংস্থা, যার মূল লক্ষ্য মানবতার সেবা করা এবং সুবিধাবঞ্চিত মানুষের জীবনমান উন্নয়নে কাজ করা।\n\n• অসহায় ও সুবিধাবঞ্চিতদের পাশে দাঁড়ানো: এতিম, অবহেলিত ও দরিদ্র মানুষের মৌলিক অধিকার নিশ্চিত করা এবং তাদের আত্মমর্যাদা রক্ষা করা।\n• শিক্ষা ও মানবিক সহায়তা: দরিদ্র শিক্ষার্থীদের শিক্ষা সহায়তা দেওয়া, অসহায়দের খাদ্য ও শীতবস্ত্র বিতরণ, চিকিৎসা সেবা প্রদান, বিশুদ্ধ পানির ব্যবস্থা এবং দুর্যোগে জরুরি ত্রাণ কার্যক্রম পরিচালনা করা।\n• ডিজিটাল ও প্রযুক্তিগত উদ্যোগ: আধুনিক প্রযুক্তি ও এআই সহায়ক প্ল্যাটফর্ম ব্যবহার করে মানুষের দৈনন্দিন কাজ, শিক্ষা ও গবেষণাকে আরও সহজতর করা।";
+  const { intro, items } = formatMissionContent(rawMission);
+  const missionPhoto = resolveMissionPhoto(about.missionImage, settings.overviewImage);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -28,7 +33,7 @@ const AboutUs = () => {
         <div className="flex flex-col md:flex-row items-center gap-8">
           <div className="md:w-1/2">
             <img
-              src={about.missionImage || settings.overviewImage || "https://i.ibb.co.com/hFKT7MM/pexels-photo-6995106.webp"}
+              src={missionPhoto}
               alt={about.missionTitle || "আমাদের লক্ষ্য"}
               className="object-cover object-center w-full md:h-[500px] rounded-2xl shadow-sm"
             />
@@ -37,9 +42,28 @@ const AboutUs = () => {
             <h2 className="text-3xl font-semibold text-gray-800 mb-4">
               {about.missionTitle || "আমাদের লক্ষ্য"}
             </h2>
-            <p className="text-gray-600 leading-relaxed">
-              <span className="font-bold">{settings.siteName}</span> {about.missionText1 || "এর লক্ষ্য হলো শীতবস্ত্র ও প্রয়োজনীয় সহায়তা পৌঁছে দিয়ে অসহায় মানুষের পাশে দাঁড়ানো এবং সবাইকে মানবিক কাজে অংশ নেওয়ার সুযোগ করে দেওয়া।"}
-            </p>
+            {intro && (
+              <p className="text-gray-600 leading-relaxed text-base lg:text-lg whitespace-pre-line">
+                {intro}
+              </p>
+            )}
+            {items.length > 0 && (
+              <div className="space-y-3 mt-4">
+                {items.map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <span className="mt-2 h-2 w-2 rounded-full bg-primary shrink-0" />
+                    <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+                      {item.title && (
+                        <strong className="text-gray-900 font-semibold">
+                          {item.title}:{" "}
+                        </strong>
+                      )}
+                      {item.desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
             {about.missionText2 && (
               <p className="mt-4 text-gray-600 leading-relaxed">
                 {about.missionText2}
