@@ -56,11 +56,33 @@ ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.donations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 
--- 5. Public read policy for site settings & campaigns
+-- 5. Table Permissions (GRANT) - fixes 'permission denied for table'
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
+
+-- 6. Row Level Security (RLS) Policies
 DROP POLICY IF EXISTS "Public can view site settings" ON public.site_settings;
 CREATE POLICY "Public can view site settings" ON public.site_settings
-  FOR SELECT
-  USING (true);
+  FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow all for site_settings" ON public.site_settings;
+CREATE POLICY "Allow all for site_settings" ON public.site_settings
+  FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all for donations" ON public.donations;
+CREATE POLICY "Allow all for donations" ON public.donations
+  FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all for expenses" ON public.expenses;
+CREATE POLICY "Allow all for expenses" ON public.expenses
+  FOR ALL USING (true) WITH CHECK (true);
+
 
 -- Note: The Vercel serverless API uses SUPABASE_SERVICE_ROLE_KEY, which
 -- automatically bypasses RLS and can securely read/write all tables.
