@@ -202,8 +202,14 @@ const AdminSettings = () => {
     event?.preventDefault();
     setBusy(true);
     try {
-      await saveSettings(form);
-      toast.success(customMsg || "পরিবর্তনগুলো সফলভাবে ও স্থায়ীভাবে সংরক্ষণ করা হয়েছে।");
+      const result = await saveSettings(form);
+      if (result.persistence === "database") {
+        toast.success(customMsg || "পরিবর্তনগুলো সার্ভারে স্থায়ীভাবে সংরক্ষণ করা হয়েছে।");
+      } else if (result.persistence === "temporary") {
+        toast.error("ডাটাবেজে সংরক্ষণ হয়নি; সার্ভারের অস্থায়ী মেমোরিতে আছে। স্থায়ী সংরক্ষণের জন্য Supabase সংযোগ দরকার।");
+      } else {
+        toast.error(result.warning || "পরিবর্তন এই ব্রাউজারে সংরক্ষিত হয়েছে, তবে সার্ভারে স্থায়ীভাবে সংরক্ষণ হয়নি।");
+      }
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -401,8 +407,12 @@ const AdminSettings = () => {
   const saveCampaignImages = async () => {
     setBusy(true);
     try {
-      await saveCampaigns(campaignList);
-      toast.success("কার্যক্রমের তথ্য ও ছবি স্থায়ীভাবে সংরক্ষিত হয়েছে।");
+      const result = await saveCampaigns(campaignList);
+      if (result.persistence === "database") {
+        toast.success("কার্যক্রমের তথ্য ও ছবি সার্ভারে স্থায়ীভাবে সংরক্ষিত হয়েছে।");
+      } else {
+        toast.error(result.warning || "কার্যক্রম এই ব্রাউজারে সংরক্ষিত হয়েছে, তবে সার্ভারে স্থায়ীভাবে সংরক্ষণ হয়নি।");
+      }
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -510,11 +520,11 @@ const AdminSettings = () => {
 
   const pendingDonations = donations.filter((donation) => donation.status === "pending");
   const approvedDonations = donations.filter((donation) => donation.status === "approved");
-  const heroSlides = form.heroSlides?.length ? form.heroSlides : DEFAULT_BRANDING.heroSlides;
-  const teamMembers = form.about?.teamMembers?.length ? form.about.teamMembers : DEFAULT_TEAM;
-  const howSteps = form.howItWorks?.steps?.length ? form.howItWorks.steps : DEFAULT_BRANDING.howItWorks.steps;
-  const testimonialItems = form.testimonials?.items?.length ? form.testimonials.items : DEFAULT_BRANDING.testimonials.items;
-  const faqItems = form.faqs?.items?.length ? form.faqs.items : DEFAULT_BRANDING.faqs.items;
+  const heroSlides = Array.isArray(form.heroSlides) ? form.heroSlides : DEFAULT_BRANDING.heroSlides;
+  const teamMembers = Array.isArray(form.about?.teamMembers) ? form.about.teamMembers : DEFAULT_TEAM;
+  const howSteps = Array.isArray(form.howItWorks?.steps) ? form.howItWorks.steps : DEFAULT_BRANDING.howItWorks.steps;
+  const testimonialItems = Array.isArray(form.testimonials?.items) ? form.testimonials.items : DEFAULT_BRANDING.testimonials.items;
+  const faqItems = Array.isArray(form.faqs?.items) ? form.faqs.items : DEFAULT_BRANDING.faqs.items;
   const contact = form.contact || DEFAULT_BRANDING.contact;
   const about = form.about || DEFAULT_BRANDING.about;
 

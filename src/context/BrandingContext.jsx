@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types, react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import localforage from "localforage";
 import { getApiUrl } from "../utils/apiConfig";
 
 export const DEFAULT_SLIDES = [
@@ -272,36 +273,28 @@ const mergeWithDefaults = (parsed) => {
   return {
     ...DEFAULT_BRANDING,
     ...parsed,
-    heroSlides: Array.isArray(parsed.heroSlides) && parsed.heroSlides.length > 0
-      ? parsed.heroSlides
-      : DEFAULT_SLIDES,
+    heroSlides: Array.isArray(parsed.heroSlides) ? parsed.heroSlides : DEFAULT_SLIDES,
     about: {
       ...DEFAULT_ABOUT,
       ...(parsed.about || {}),
-      teamMembers: Array.isArray(parsed.about?.teamMembers) && parsed.about.teamMembers.length > 0
+      teamMembers: Array.isArray(parsed.about?.teamMembers)
         ? parsed.about.teamMembers
-        : (Array.isArray(parsed.teamMembers) && parsed.teamMembers.length > 0 ? parsed.teamMembers : DEFAULT_TEAM),
+        : (Array.isArray(parsed.teamMembers) ? parsed.teamMembers : DEFAULT_TEAM),
     },
     howItWorks: {
       ...DEFAULT_HOW_IT_WORKS,
       ...(parsed.howItWorks || {}),
-      steps: Array.isArray(parsed.howItWorks?.steps) && parsed.howItWorks.steps.length > 0
-        ? parsed.howItWorks.steps
-        : DEFAULT_HOW_IT_WORKS.steps,
+      steps: Array.isArray(parsed.howItWorks?.steps) ? parsed.howItWorks.steps : DEFAULT_HOW_IT_WORKS.steps,
     },
     testimonials: {
       ...DEFAULT_TESTIMONIALS,
       ...(parsed.testimonials || {}),
-      items: Array.isArray(parsed.testimonials?.items) && parsed.testimonials.items.length > 0
-        ? parsed.testimonials.items
-        : DEFAULT_TESTIMONIALS.items,
+      items: Array.isArray(parsed.testimonials?.items) ? parsed.testimonials.items : DEFAULT_TESTIMONIALS.items,
     },
     faqs: {
       ...DEFAULT_FAQS,
       ...(parsed.faqs || {}),
-      items: Array.isArray(parsed.faqs?.items) && parsed.faqs.items.length > 0
-        ? parsed.faqs.items
-        : DEFAULT_FAQS.items,
+      items: Array.isArray(parsed.faqs?.items) ? parsed.faqs.items : DEFAULT_FAQS.items,
     },
     contact: {
       ...DEFAULT_CONTACT,
@@ -357,13 +350,26 @@ export function BrandingProvider({ children }) {
   const [campaigns, setCampaigns] = useState(loadInitialCampaigns);
 
   useEffect(() => {
+    let active = true;
+
+    // localForage uses IndexedDB and can store larger images than localStorage.
+    localforage.getItem(STORAGE_KEYS.SETTINGS).then((saved) => {
+      if (active && saved && typeof saved === "object") {
+        setSettings((current) => mergeWithDefaults({ ...current, ...saved }));
+      }
+    }).catch(() => {});
+    localforage.getItem(STORAGE_KEYS.CAMPAIGNS).then((saved) => {
+      if (active && Array.isArray(saved)) setCampaigns(saved);
+    }).catch(() => {});
+
     fetch(getApiUrl("public-settings"))
       .then((response) => (response.ok ? response.json() : null))
       .then((value) => {
-        if (value && typeof value === "object") {
+        if (active && value && typeof value === "object" && Object.keys(value).length > 0) {
           setSettings((prev) => {
             const next = mergeWithDefaults({ ...prev, ...value });
             try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(next)); } catch { /* ignore */ }
+            localforage.setItem(STORAGE_KEYS.SETTINGS, next).catch(() => {});
             return next;
           });
         }
@@ -373,12 +379,15 @@ export function BrandingProvider({ children }) {
     fetch(getApiUrl("public-campaigns"))
       .then((response) => (response.ok ? response.json() : null))
       .then((value) => {
-        if (Array.isArray(value) && value.length > 0) {
+        if (active && Array.isArray(value) && value.length > 0) {
           setCampaigns(value);
           try { localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(value)); } catch { /* ignore */ }
+          localforage.setItem(STORAGE_KEYS.CAMPAIGNS, value).catch(() => {});
         }
       })
       .catch(() => {});
+
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
@@ -390,16 +399,16 @@ export function BrandingProvider({ children }) {
   const saveSettings = async (next) => {
     const merged = mergeWithDefaults(next);
 
-    // 1. Permanently persist in localStorage so refresh never resets it
-    try {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
-    } catch (e) {
-      console.warn("Failed writing settings to localStorage:", e);
-    }
-    // 2. Immediately update current React state
+    // Update immediately, then persist locally in both web storage options.
     setSettings(merged);
+    try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged)); } catch (e) {
+      console.warn("localStorage quota exceeded or error:", e);
+    }
+    try { await localforage.setItem(STORAGE_KEYS.SETTINGS, merged); } catch (e) {
+      console.warn("IndexedDB save failed:", e);
+    }
 
-    // 3. Attempt server sync with authentication
+    // Attempt server sync with authentication
     try {
       let token = "";
       let adminEmail = "alahsanfoundationbangladesh@gmail.com";
@@ -410,7 +419,7 @@ export function BrandingProvider({ children }) {
           if (sessionObj?.token) token = sessionObj.token;
           if (sessionObj?.email) adminEmail = sessionObj.email;
         }
-      } catch {}
+      } catch { /* ignore malformed local session cache */ }
 
       const headers = {
         "Content-Type": "application/json",
@@ -431,25 +440,28 @@ export function BrandingProvider({ children }) {
           const finalMerged = mergeWithDefaults(result.value);
           setSettings(finalMerged);
           try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(finalMerged)); } catch { /* ignore */ }
-          return finalMerged;
+          return { value: finalMerged, persistence: result.persistence || "temporary" };
         }
-      } else {
-        const err = await response.json().catch(() => ({}));
-        console.warn("Server save-content error:", err);
       }
+      const err = await response.json().catch(() => ({}));
+      console.warn("Server save-content error:", err);
+      return { value: merged, persistence: "local", warning: err.error || "সার্ভারে সংরক্ষণ করা যায়নি।" };
     } catch (error) {
       console.info("Server-side sync skipped or failed; local persistence active.", error);
+      return { value: merged, persistence: "local", warning: "সার্ভারের সঙ্গে সংযোগ করা যায়নি।" };
     }
-    return merged;
   };
 
   const saveCampaigns = async (next) => {
+    setCampaigns(next);
     try {
       localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(next));
     } catch (e) {
       console.warn("Failed writing campaigns to localStorage:", e);
     }
-    setCampaigns(next);
+    try { await localforage.setItem(STORAGE_KEYS.CAMPAIGNS, next); } catch (e) {
+      console.warn("IndexedDB campaign save failed:", e);
+    }
 
     try {
       let token = "";
@@ -461,7 +473,7 @@ export function BrandingProvider({ children }) {
           if (sessionObj?.token) token = sessionObj.token;
           if (sessionObj?.email) adminEmail = sessionObj.email;
         }
-      } catch {}
+      } catch { /* ignore malformed local session cache */ }
 
       const headers = {
         "Content-Type": "application/json",
@@ -481,13 +493,16 @@ export function BrandingProvider({ children }) {
         if (Array.isArray(result.campaigns)) {
           setCampaigns(result.campaigns);
           try { localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(result.campaigns)); } catch { /* ignore */ }
-          return result.campaigns;
+          localforage.setItem(STORAGE_KEYS.CAMPAIGNS, result.campaigns).catch(() => {});
+          return { value: result.campaigns, persistence: result.persistence || "temporary" };
         }
       }
+      const result = await response.json().catch(() => ({}));
+      return { value: next, persistence: "local", warning: result.error || "সার্ভারে সংরক্ষণ করা যায়নি।" };
     } catch (error) {
       console.info("Server-side sync skipped or failed; local persistence active.", error);
+      return { value: next, persistence: "local", warning: "সার্ভারের সঙ্গে সংযোগ করা যায়নি।" };
     }
-    return next;
   };
 
   const value = useMemo(() => ({ settings, campaigns, saveSettings, saveCampaigns }), [settings, campaigns]);
