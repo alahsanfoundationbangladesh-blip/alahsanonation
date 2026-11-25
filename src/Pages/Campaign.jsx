@@ -16,8 +16,8 @@ const Campaign = ({ campaign, index = 0 }) => {
 
   return (
     <div className="card bg-base-100 rounded-lg" data-aos="fade-up" data-aos-delay={delay}>
-      <figure>
-        <img src={image} alt={title} />
+      <figure className="h-48 overflow-hidden bg-gray-100">
+        <img src={image} alt={title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
       </figure>
       <div className="card-body">
         <h2 className="card-title">{title}</h2>

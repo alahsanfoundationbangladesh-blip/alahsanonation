@@ -17,7 +17,6 @@ import PrivateRoute from "./PrivateRoute";
 import AdminRoute from "./AdminRoute";
 import AdminSettings from "../Pages/AdminSettings";
 import DonateMoney from "../Pages/DonateMoney";
-import { getApiUrl } from "../utils/apiConfig";
 
 const router = createBrowserRouter(
   [
@@ -34,11 +33,8 @@ const router = createBrowserRouter(
           path: "campaigns",
           element: <Campaigns />,
           loader: async () => {
-            try {
-              const dynamic = await fetch(getApiUrl("public-campaigns"));
-              const campaigns = await dynamic.json();
-              if (Array.isArray(campaigns) && campaigns.length > 0) return campaigns;
-            } catch { /* Use cached or static list */ }
+            // Instant load: return locally cached or static seed immediately
+            // Background sync is handled seamlessly by BrandingContext
             try {
               const local = localStorage.getItem("alahsan-campaigns");
               if (local) {
@@ -46,7 +42,11 @@ const router = createBrowserRouter(
                 if (Array.isArray(parsed) && parsed.length > 0) return parsed;
               }
             } catch { /* ignore */ }
-            return fetch("/donation-campaigns.json");
+            try {
+              const res = await fetch("/donation-campaigns.json");
+              if (res.ok) return await res.json();
+            } catch { /* ignore */ }
+            return [];
           },
         },
         {
@@ -107,22 +107,21 @@ const router = createBrowserRouter(
           loader: async ({ params }) => {
             let data = null;
             try {
-              const dynamic = await fetch(getApiUrl("public-campaigns"));
-              const result = await dynamic.json();
-              if (Array.isArray(result) && result.length > 0) data = result;
-            } catch { /* Use local or static list */ }
+              const local = localStorage.getItem("alahsan-campaigns");
+              if (local) {
+                const parsed = JSON.parse(local);
+                if (Array.isArray(parsed) && parsed.length > 0) data = parsed;
+              }
+            } catch { /* ignore */ }
             if (!data) {
               try {
-                const local = localStorage.getItem("alahsan-campaigns");
-                if (local) {
-                  const parsed = JSON.parse(local);
-                  if (Array.isArray(parsed) && parsed.length > 0) data = parsed;
-                }
+                const res = await fetch("/donation-campaigns.json");
+                if (res.ok) data = await res.json();
               } catch { /* ignore */ }
             }
-            if (!data) data = await fetch("/donation-campaigns.json").then((res) => res.json());
+            if (!Array.isArray(data)) data = [];
             const singleData = data.find((d) => d.id === parseInt(params.id));
-            return singleData;
+            return singleData || null;
           },
         },
         {
