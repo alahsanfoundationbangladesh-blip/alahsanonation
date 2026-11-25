@@ -11,7 +11,7 @@ const Contact = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    toast.success("আপনার বার্তা সফলভাবে গ্রহণ করা হয়েছে! ধন্যবাদ।");
+    toast.success(contact.successMessage || "আপনার বার্তা সফলভাবে গ্রহণ করা হয়েছে! ধন্যবাদ।");
     e.target.reset();
   };
 
@@ -43,36 +43,36 @@ const Contact = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-gray-700 font-medium mb-1 text-sm">
-                  পূর্ণ নাম
+                  {contact.nameLabel || "পূর্ণ নাম"}
                 </label>
                 <input
                   type="text"
                   id="name"
-                  placeholder="আপনার নাম"
+                  placeholder={contact.namePlaceholder || "আপনার নাম"}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-primary"
                   required
                 />
               </div>
               <div>
                 <label htmlFor="email" className="block text-gray-700 font-medium mb-1 text-sm">
-                  ইমেইল ঠিকানা
+                  {contact.emailLabel || "ইমেইল ঠিকানা"}
                 </label>
                 <input
                   type="email"
                   id="email"
-                  placeholder="আপনার ইমেইল"
+                  placeholder={contact.emailPlaceholder || "আপনার ইমেইল"}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-primary"
                   required
                 />
               </div>
               <div>
                 <label htmlFor="message" className="block text-gray-700 font-medium mb-1 text-sm">
-                  বার্তা
+                  {contact.messageLabel || "বার্তা"}
                 </label>
                 <textarea
                   id="message"
                   rows="4"
-                  placeholder="আপনার বার্তা"
+                  placeholder={contact.messagePlaceholder || "আপনার বার্তা"}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-primary"
                   required
                 ></textarea>
@@ -81,7 +81,7 @@ const Contact = () => {
                 type="submit"
                 className="w-full bg-primary text-white px-4 py-3 rounded-lg hover:opacity-90 font-semibold shadow transition"
               >
-                বার্তা পাঠান
+                {contact.submitButtonText || "বার্তা পাঠান"}
               </button>
             </form>
           </div>
@@ -90,10 +90,10 @@ const Contact = () => {
           <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 space-y-6">
             <div>
               <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-2">
-                যোগাযোগের তথ্য
+                {contact.contactDetailsTitle || "যোগাযোগের তথ্য"}
               </h2>
               <p className="text-gray-600 text-sm md:text-base">
-                যেকোনো প্রয়োজনে আমাদের সঙ্গে সরাসরি যোগাযোগ করতে পারেন।
+                {contact.contactDetailsSubtitle || "যেকোনো প্রয়োজনে আমাদের সঙ্গে সরাসরি যোগাযোগ করতে পারেন।"}
               </p>
             </div>
 
@@ -103,7 +103,7 @@ const Contact = () => {
                   <IoCallOutline />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 font-medium">অনুদান ও হেল্পলাইন</p>
+                  <p className="text-xs text-gray-500 font-medium">{contact.donationHelpLabel || "অনুদান ও হেল্পলাইন"}</p>
                   <p className="text-gray-800 font-semibold text-base">{contact.phone || "+৮৮০ ১৩১২৫১৫৬৪৩"}</p>
                 </div>
               </li>
@@ -112,7 +112,7 @@ const Contact = () => {
                   <MdOutlineMarkEmailUnread />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 font-medium">অফিসিয়াল ইমেইল</p>
+                  <p className="text-xs text-gray-500 font-medium">{contact.officialEmailLabel || "অফিসিয়াল ইমেইল"}</p>
                   <p className="text-gray-800 font-semibold text-base break-all">{contact.email || "alahsanfoundationbangladesh@gmail.com"}</p>
                 </div>
               </li>
@@ -121,7 +121,7 @@ const Contact = () => {
                   <IoLocationOutline />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 font-medium">ঠিকানা</p>
+                  <p className="text-xs text-gray-500 font-medium">{contact.addressLabel || "ঠিকানা"}</p>
                   <p className="text-gray-800 font-semibold text-base">{contact.address || "বাংলাদেশ"}</p>
                 </div>
               </li>
@@ -129,11 +129,11 @@ const Contact = () => {
 
             {(contact.bkashNumber || contact.nagadNumber || contact.rocketNumber) && (
               <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <p className="text-xs font-semibold text-gray-700 mb-2">মোবাইল ব্যাংকিং অ্যাকাউন্ট নম্বর (ব্যক্তিগত):</p>
+                <p className="text-xs font-semibold text-gray-700 mb-2">{contact.mobileBankingTitle || "মোবাইল ব্যাংকিং অ্যাকাউন্ট নম্বর (ব্যক্তিগত):"}</p>
                 <div className="text-xs text-gray-600 space-y-1">
-                  {contact.bkashNumber && <p><span className="font-medium text-pink-600">বিকাশ:</span> {contact.bkashNumber}</p>}
-                  {contact.nagadNumber && <p><span className="font-medium text-orange-600">নগদ:</span> {contact.nagadNumber}</p>}
-                  {contact.rocketNumber && <p><span className="font-medium text-purple-600">রকেট:</span> {contact.rocketNumber}</p>}
+                  {contact.bkashNumber && <p><span className="font-medium text-pink-600">{contact.bkashLabel || "বিকাশ:"}</span> {contact.bkashNumber}</p>}
+                  {contact.nagadNumber && <p><span className="font-medium text-orange-600">{contact.nagadLabel || "নগদ:"}</span> {contact.nagadNumber}</p>}
+                  {contact.rocketNumber && <p><span className="font-medium text-purple-600">{contact.rocketLabel || "রকেট:"}</span> {contact.rocketNumber}</p>}
                 </div>
               </div>
             )}

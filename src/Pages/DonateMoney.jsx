@@ -146,9 +146,9 @@ const DonateMoney = () => {
     <main className="mx-auto max-w-3xl px-4 py-10">
       <Helmet><title>অর্থ অনুদান | আল আহসান ফাউন্ডেশন</title></Helmet>
       <header className="mb-7 rounded-3xl bg-primary p-7 text-white">
-        <p className="text-sm font-semibold text-white/80">নিরাপদ ও যাচাইকৃত অনুদান</p>
-        <h1 className="mt-2 text-3xl font-bold">অর্থ অনুদান দিন</h1>
-        <p className="mt-2">বিকাশ, নগদ অথবা রকেট থেকে অর্থ পাঠিয়ে TrxID দিয়ে অনুদান জমা করুন।</p>
+        <p className="text-sm font-semibold text-white/80">{settings.donatePageTagline || "নিরাপদ ও যাচাইকৃত অনুদান"}</p>
+        <h1 className="mt-2 text-3xl font-bold">{settings.donatePageTitle || "অর্থ অনুদান দিন"}</h1>
+        <p className="mt-2">{settings.donatePageSubtitle || "বিকাশ, নগদ অথবা রকেট থেকে অর্থ পাঠিয়ে TrxID দিয়ে অনুদান জমা করুন।"}</p>
       </header>
 
       {submitted ? <div role="status" className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-5">
@@ -158,8 +158,8 @@ const DonateMoney = () => {
       </div> : null}
 
       <section className="mb-6 rounded-2xl border border-primary/20 bg-white p-5 shadow-sm">
-        <h2 className="text-xl font-bold">টাকা পাঠানোর নম্বর</h2>
-        <p className="mt-2 text-gray-600">বিকাশ, নগদ বা রকেট থেকে নিচের নম্বরে টাকা পাঠান। সফল লেনদেনের পর পাওয়া TrxID ফর্মে দিন। অনুদান যাচাই না হওয়া পর্যন্ত এটি অপেক্ষমাণ থাকবে।</p>
+        <h2 className="text-xl font-bold">{settings.donateInstructionsTitle || "টাকা পাঠানোর নম্বর"}</h2>
+        <p className="mt-2 text-gray-600">{settings.donateInstructionsText || "বিকাশ, নগদ বা রকেট থেকে নিচের নম্বরে টাকা পাঠান। সফল লেনদেনের পর পাওয়া TrxID ফর্মে দিন। অনুদান যাচাই না হওয়া পর্যন্ত এটি অপেক্ষমাণ থাকবে।"}</p>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gray-50 p-4">
           <span className="font-bold">বিকাশ · নগদ · রকেট</span>
           <a className="text-xl font-extrabold text-primary" href={`tel:${currentPaymentNumber}`}>{currentPaymentNumber}</a>

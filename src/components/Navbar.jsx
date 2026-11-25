@@ -1,5 +1,4 @@
 import { useContext, useState } from "react";
-
 import { Link, NavLink } from "react-router-dom";
 import { AuthContext, isAdminUser } from "../context/AuthProvider";
 import { useBranding } from "../context/BrandingContext";
@@ -17,7 +16,7 @@ const Navbar = () => {
           to="/"
           className={({ isActive }) => (isActive ? activeStyle : "")}
         >
-          হোম
+          {settings.navHomeText || "হোম"}
         </NavLink>
       </li>
       <li>
@@ -25,16 +24,20 @@ const Navbar = () => {
           to="/campaigns"
           className={({ isActive }) => (isActive ? activeStyle : "")}
         >
-          অনুদান কার্যক্রম
+          {settings.navCampaignsText || "অনুদান কার্যক্রম"}
         </NavLink>
       </li>
-      <li><NavLink to="/donate" className={({ isActive }) => (isActive ? activeStyle : "")}>অর্থ অনুদান</NavLink></li>
+      <li>
+        <NavLink to="/donate" className={({ isActive }) => (isActive ? activeStyle : "")}>
+          {settings.navDonateText || "অর্থ অনুদান"}
+        </NavLink>
+      </li>
       <li>
         <NavLink
           to="/how-to-help"
           className={({ isActive }) => (isActive ? activeStyle : "")}
         >
-          কীভাবে সহায়তা করবেন
+          {settings.navHowToHelpText || "কীভাবে সহায়তা করবেন"}
         </NavLink>
       </li>
       <li>
@@ -42,7 +45,7 @@ const Navbar = () => {
           to="/about"
           className={({ isActive }) => (isActive ? activeStyle : "")}
         >
-          আমাদের সম্পর্কে
+          {settings.navAboutText || "আমাদের সম্পর্কে"}
         </NavLink>
       </li>
       <li>
@@ -50,7 +53,7 @@ const Navbar = () => {
           to="/contact"
           className={({ isActive }) => (isActive ? activeStyle : "")}
         >
-          যোগাযোগ
+          {settings.navContactText || "যোগাযোগ"}
         </NavLink>
       </li>
       {user?.email && (

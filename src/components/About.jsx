@@ -7,6 +7,8 @@ const About = () => {
   const about = settings.about || {};
   const image = settings.overviewImage || about.missionImage || "https://i.ibb.co.com/hFKT7MM/pexels-photo-6995106.webp";
   const title = settings.overviewTitle || `${settings.siteName} সম্পর্কে`;
+  const buttonText = settings.overviewButtonText || "আমাদের সম্পর্কে আরও জানুন";
+  const buttonLink = settings.overviewButtonLink || "/about";
 
   return (
     <div className="card lg:card-side my-16 space-y-5" data-aos="fade-up">
@@ -26,10 +28,10 @@ const About = () => {
         </p>
         <div className="card-actions">
           <Link
-            to="/about"
+            to={buttonLink}
             className="btn bg-gradient-to-r from-[#1da1f2] to-[#0e71c8] text-white hover:opacity-90 shadow-md"
           >
-            আমাদের সম্পর্কে আরও জানুন
+            {buttonText}
           </Link>
         </div>
       </div>

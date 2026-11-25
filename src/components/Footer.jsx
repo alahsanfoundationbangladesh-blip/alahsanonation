@@ -26,24 +26,24 @@ const Footer = () => {
 
         {/* Navigation Links */}
         <div className="space-y-3">
-          <p className="text-base font-bold text-white uppercase tracking-wider">দ্রুত লিংক</p>
+          <p className="text-base font-bold text-white uppercase tracking-wider">{contact.quickLinksTitle || "দ্রুত লিংক"}</p>
           <ul className="space-y-2 flex flex-col text-sm text-gray-100">
-            <li><NavLink to="/campaigns" className="hover:underline">অনুদান কার্যক্রম</NavLink></li>
-            <li><NavLink to="/donate" className="hover:underline">অর্থ অনুদান</NavLink></li>
-            <li><NavLink to="/how-to-help" className="hover:underline">কীভাবে সহায়তা করবেন</NavLink></li>
-            <li><NavLink to="/about" className="hover:underline">আমাদের সম্পর্কে</NavLink></li>
-            <li><NavLink to="/contact" className="hover:underline">যোগাযোগ</NavLink></li>
+            <li><NavLink to="/campaigns" className="hover:underline">{settings.navCampaignsText || "অনুদান কার্যক্রম"}</NavLink></li>
+            <li><NavLink to="/donate" className="hover:underline">{settings.navDonateText || "অর্থ অনুদান"}</NavLink></li>
+            <li><NavLink to="/how-to-help" className="hover:underline">{settings.navHowToHelpText || "কীভাবে সহায়তা করবেন"}</NavLink></li>
+            <li><NavLink to="/about" className="hover:underline">{settings.navAboutText || "আমাদের সম্পর্কে"}</NavLink></li>
+            <li><NavLink to="/contact" className="hover:underline">{settings.navContactText || "যোগাযোগ"}</NavLink></li>
             <li><NavLink to="/admin" className="hover:underline text-xs opacity-75">অ্যাডমিন প্রবেশ</NavLink></li>
           </ul>
         </div>
 
         {/* Contact Info */}
         <div className="space-y-3">
-          <p className="text-base font-bold text-white uppercase tracking-wider">যোগাযোগের ঠিকানা</p>
+          <p className="text-base font-bold text-white uppercase tracking-wider">{contact.contactInfoTitle || "যোগাযোগের ঠিকানা"}</p>
           <ul className="space-y-2 text-sm text-gray-100">
             <li>{contact.address || "বাংলাদেশ"}</li>
             <li>{contact.email || "alahsanfoundationbangladesh@gmail.com"}</li>
-            <li>হেল্পলাইন: {contact.phone || "+৮৮০ ১৩১২৫১৫৬৪৩"}</li>
+            <li>{contact.helplineLabel || "হেল্পলাইন"}: {contact.phone || "+৮৮০ ১৩১২৫১৫৬৪৩"}</li>
           </ul>
         </div>
       </div>
@@ -53,7 +53,7 @@ const Footer = () => {
       {/* Bottom Bar */}
       <aside className="flex items-center justify-between flex-col md:flex-row gap-4">
         <p className="text-xs md:text-sm text-gray-200 text-center md:text-left">
-          কপিরাইট © {new Date().getFullYear()} · সর্বস্বত্ব সংরক্ষিত — {settings.siteName}
+          {contact.copyrightText || `কপিরাইট © ${new Date().getFullYear()} · সর্বস্বত্ব সংরক্ষিত — ${settings.siteName}`}
         </p>
         <div className="flex items-center space-x-3">
           {contact.facebookUrl && (
