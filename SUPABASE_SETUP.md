@@ -106,3 +106,37 @@ CREATE POLICY "Allow all for expenses" ON public.expenses FOR ALL USING (true) W
 ```
 
 এছাড়াও Vercel Environment Variables-এ `SUPABASE_SERVICE_ROLE_KEY`-তে Supabase-এর `service_role` (secret) কী দেওয়া হয়েছে কি না নিশ্চিত করুন।
+
+
+---
+
+## ধাপ ৫: আসল গুগল লগইন (Google OAuth) চালুকরণ গাইড
+
+ওয়েবসাইটে নিরাপদ **Supabase Google OAuth** চালুর জন্য নিচের পদক্ষেপগুলো সম্পন্ন করুন:
+
+### ১. Google Cloud Console-এ OAuth Client তৈরি:
+1. [Google Cloud Console](https://console.cloud.google.com/)-এ যান।
+2. **APIs & Services** > **Credentials** > **Create Credentials** > **OAuth client ID** নির্বাচন করুন।
+3. Application type হিসেবে **Web application** দিন।
+4. **Authorized redirect URIs**-এ আপনার Supabase-এর কলব্যাক ইউআরএল দিন:
+   `https://<আপনার-supabase-project-id>.supabase.co/auth/v1/callback`
+5. তৈরি সম্পন্ন হলে **Client ID** ও **Client Secret** কপি করে রাখুন।
+
+### ২. Supabase-এ Google Provider সচল করা:
+1. [Supabase ড্যাশবোর্ডে](https://supabase.com/dashboard) আপনার প্রজেক্ট খুলুন।
+2. বাম পাশের মেনু থেকে **Authentication** > **Providers**-এ যান।
+3. **Google** প্রোভাইডারটি চালু (Toggle ON) করুন।
+4. ধাপ ১-এ পাওয়া **Google Client ID** এবং **Google Client Secret** পেস্ট করে **Save** দিন।
+5. একই মেনুর **URL Configuration**-এ গিয়ে:
+   - **Site URL**: `https://alahsanonation.vercel.app`
+   - **Redirect URLs**-এ যোগ করুন: `https://alahsanonation.vercel.app/**` এবং `https://alahsanonation.vercel.app/login`
+
+### ৩. Vercel-এ ক্লায়েন্ট Environment Variables যোগ করা:
+1. [Vercel ড্যাশবোর্ডে](https://vercel.com) গিয়ে `alahsanonation` প্রজেক্টের **Settings** > **Environment Variables**-এ যান।
+2. নিচের ভেরিয়েবলগুলো যুক্ত করুন:
+   - `VITE_SUPABASE_URL`: আপনার Supabase প্রজেক্ট URL (যেমন: `https://xxxxxx.supabase.co`)
+   - `VITE_SUPABASE_ANON_KEY`: Supabase API সেটিংসে থাকা **`anon` (public)** কী
+   - `SUPABASE_ANON_KEY`: একই **`anon` (public)** কী
+3. সেভ করে একবার **Redeploy** দিন।
+
+এখন "গুগল দিয়ে সরাসরি প্রবেশ" বাটনে চাপলে সরাসরি আসল Google Consent Screen আসবে এবং দায়িত্বশীল অ্যাডমিনদের ইমেইল ভেরিফাই হলে স্বয়ংক্রিয়ভাবে অ্যাডমিন এক্সেস কার্যকর হবে।

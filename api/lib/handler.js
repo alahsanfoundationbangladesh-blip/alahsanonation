@@ -55,38 +55,54 @@ function createToken(payload) {
   return `${header}.${body}.${signature}`;
 }
 
-function verifyAdmin(authHeader, adminEmailHeader, clientUser) {
-  // 1. Client context / Netlify Identity
+async function verifyAdmin(authHeader, adminEmailHeader, clientUser) {
+  // 1. Client context / Netlify Identity (if enabled)
   if (clientUser?.email && isAdminEmail(clientUser.email)) {
     return { ok: true, email: clientUser.email };
   }
 
-  // 2. Authorization Bearer JWT
+  // 2. Authorization Bearer Token
   if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.slice(7).trim();
+
+    // Check with Supabase Auth first (for real Google OAuth tokens)
+    if (useSupabase) {
+      const client = getSupabase();
+      if (client) {
+        try {
+          const { data, error } = await client.auth.getUser(token);
+          if (!error && data?.user?.email) {
+            if (isAdminEmail(data.user.email)) {
+              return { ok: true, email: data.user.email };
+            }
+            return { ok: false, error: "এই গুগল অ্যাকাউন্টের অ্যাডমিন অনুমতি নেই।" };
+          }
+        } catch { /* proceed to JWT check */ }
+      }
+    }
+
+    // Check signed internal JWT
     try {
-      const token = authHeader.slice(7).trim();
       const parts = token.split(".");
       if (parts.length === 3) {
         const payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
-        if (payload?.role === "admin" || isAdminEmail(payload?.email)) {
-          return { ok: true, email: payload.email || ADMIN_EMAIL };
+        if (payload?.exp && payload.exp * 1000 < Date.now()) {
+          return { ok: false, error: "সেশনের মেয়াদ শেষ হয়েছে। আবার লগইন করুন।" };
+        }
+        if (isAdminEmail(payload?.email) && payload?.role === "admin") {
+          return { ok: true, email: payload.email };
         }
       }
-    } catch { /* ignore invalid token */ }
+    } catch { /* ignore */ }
   }
 
-  // 3. Admin email header
-  if (adminEmailHeader && isAdminEmail(adminEmailHeader)) {
-    return { ok: true, email: adminEmailHeader };
-  }
-
-  // 4. Secret token fallback (optional ADMIN_SECRET_KEY)
+  // 3. Secret token fallback (optional ADMIN_SECRET_KEY in server env)
   const envSecret = process.env.ADMIN_SECRET_KEY;
   if (envSecret && authHeader === `Bearer ${envSecret}`) {
     return { ok: true, email: ADMIN_EMAIL };
   }
 
-  return { ok: false, error: "অ্যাডমিন অনুমতি নেই।" };
+  return { ok: false, error: "অ্যাডমিন অনুমতি নেই। সঠিক অ্যাকাউন্টে লগইন করুন।" };
 }
 
 async function sendReceiptEmail(donation, attemptKey = "initial") {
@@ -565,7 +581,7 @@ export async function handleApiRequest(req, res, context) {
 
     // 4. Admin Data (GET)
     if (action === "admin-data" && method === "GET") {
-      const auth = verifyAdmin(
+      const auth = await verifyAdmin(
         getHeader("authorization"),
         getHeader("x-admin-email"),
         context?.clientContext?.user
@@ -606,7 +622,7 @@ export async function handleApiRequest(req, res, context) {
 
     // 5. Admin Actions (POST)
     if (action === "admin" && method === "POST") {
-      const auth = verifyAdmin(
+      const auth = await verifyAdmin(
         getHeader("authorization"),
         getHeader("x-admin-email"),
         context?.clientContext?.user
