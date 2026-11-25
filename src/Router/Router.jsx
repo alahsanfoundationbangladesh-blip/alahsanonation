@@ -33,13 +33,21 @@ const router = createBrowserRouter(
           path: "campaigns",
           element: <Campaigns />,
           loader: async () => {
-            // Instant load: return locally cached or static seed immediately
-            // Background sync is handled seamlessly by BrandingContext
             try {
               const local = localStorage.getItem("alahsan-campaigns");
               if (local) {
                 const parsed = JSON.parse(local);
                 if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+              }
+            } catch { /* ignore */ }
+            try {
+              const res = await fetch("/api?action=public-campaigns", { cache: "no-store" });
+              if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                  try { localStorage.setItem("alahsan-campaigns", JSON.stringify(data)); } catch { /* ignore */ }
+                  return data;
+                }
               }
             } catch { /* ignore */ }
             try {
@@ -113,6 +121,18 @@ const router = createBrowserRouter(
                 if (Array.isArray(parsed) && parsed.length > 0) data = parsed;
               }
             } catch { /* ignore */ }
+            if (!data) {
+              try {
+                const res = await fetch("/api?action=public-campaigns", { cache: "no-store" });
+                if (res.ok) {
+                  const fetched = await res.json();
+                  if (Array.isArray(fetched) && fetched.length > 0) {
+                    data = fetched;
+                    try { localStorage.setItem("alahsan-campaigns", JSON.stringify(fetched)); } catch { /* ignore */ }
+                  }
+                }
+              } catch { /* ignore */ }
+            }
             if (!data) {
               try {
                 const res = await fetch("/donation-campaigns.json");

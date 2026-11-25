@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { useBranding } from "../context/BrandingContext";
 import {
   isPunctuationOnly,
-  resolveMissionPhoto,
   formatMissionContent,
 } from "../utils/textFormatters";
 import "../index.css";
@@ -22,10 +21,7 @@ const About = () => {
   const buttonText = settings.overviewButtonText || "আমাদের কার্যক্রম দেখুন";
   const buttonLink = settings.overviewButtonLink || "/campaigns";
 
-  // 3. Image: ignore text-screenshot base64 and show real photo
-  const image = resolveMissionPhoto(settings.overviewImage, about.missionImage);
-
-  // 4. Text content: fallback from overview to about.missionText1 to default
+  // 3. Text content: fallback from overview to about.missionText1 to default
   let rawText = settings.overview;
   if (!rawText || isPunctuationOnly(rawText)) {
     rawText = about.missionText1 || "";
@@ -39,20 +35,12 @@ const About = () => {
 
   return (
     <div
-      className="card lg:card-side my-16 bg-white/70 backdrop-blur-sm rounded-3xl p-5 sm:p-7 lg:p-9 border border-gray-100 shadow-sm transition-all duration-300"
+      className="card my-12 bg-white/80 backdrop-blur-sm rounded-3xl p-6 sm:p-9 lg:p-12 border border-gray-100 shadow-sm transition-all duration-300"
       data-aos="fade-up"
     >
-      <figure className="w-full lg:w-[48%] rounded-2xl overflow-hidden shadow-sm h-[320px] sm:h-[420px] lg:h-[500px]">
-        <img
-          src={image}
-          alt={title}
-          className="object-cover object-center w-full h-full rounded-2xl hover:scale-105 transition duration-500"
-        />
-      </figure>
-
-      <div className="flex flex-col justify-center lg:ml-8 w-full lg:w-[52%] gap-4 mt-6 lg:mt-0">
+      <div className="flex flex-col gap-5 max-w-4xl mx-auto w-full">
         <div>
-          <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 rounded-full mb-2">
+          <span className="inline-block px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 rounded-full mb-3">
             আমাদের লক্ষ্য ও পরিচিতি
           </span>
           <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-gray-900 leading-tight">
@@ -61,16 +49,19 @@ const About = () => {
         </div>
 
         {intro && (
-          <p className="text-gray-700 leading-relaxed text-base lg:text-lg whitespace-pre-line">
+          <p className="text-gray-700 leading-relaxed text-base lg:text-lg whitespace-pre-line bg-sky-50/40 p-4 sm:p-5 rounded-2xl border border-sky-100/60">
             {intro}
           </p>
         )}
 
         {items.length > 0 && (
-          <div className="space-y-3 my-1">
+          <div className="grid gap-3.5 my-2">
             {items.map((item, idx) => (
-              <div key={idx} className="flex items-start gap-3">
-                <span className="mt-2 h-2 w-2 rounded-full bg-primary shrink-0" />
+              <div
+                key={idx}
+                className="flex items-start gap-3.5 p-3.5 sm:p-4 rounded-xl bg-gray-50/70 border border-gray-100/80 transition-all hover:bg-sky-50/50 hover:border-sky-100"
+              >
+                <span className="mt-1.5 h-2.5 w-2.5 rounded-full bg-primary shrink-0 ring-4 ring-primary/20" />
                 <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
                   {item.title && (
                     <strong className="text-gray-900 font-semibold">
@@ -84,10 +75,10 @@ const About = () => {
           </div>
         )}
 
-        <div className="card-actions pt-2">
+        <div className="card-actions pt-3">
           <Link
             to={buttonLink}
-            className="btn bg-gradient-to-r from-[#1da1f2] to-[#0e71c8] text-white hover:opacity-90 shadow-md border-none px-6 text-base"
+            className="btn bg-gradient-to-r from-[#1da1f2] to-[#0e71c8] text-white hover:opacity-90 shadow-md border-none px-8 text-base font-medium rounded-xl"
           >
             {buttonText}
           </Link>

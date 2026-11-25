@@ -6,35 +6,11 @@ import { getApiUrl } from "../utils/apiConfig";
 export const DEFAULT_SLIDES = [
   {
     id: 1,
-    image: "https://i.ibb.co/Wy1D8Np/DALL-E-2024-11-19-04-43-42-A-volunteer-warmly-wrapping-a-child-in-a-cozy-blanket-during-winter-surro.webp",
-    heading: "সবার জন্য উষ্ণতা",
-    description: "শীতবস্ত্র পেয়ে পরিবারগুলোতে ছড়িয়ে পড়ছে উষ্ণতা ও আশার আলো।",
+    image: "/slide-1.webp",
+    heading: "আল-আহসান ফাউন্ডেশন বাংলাদেশ",
+    description: "খাদ্যদব্র পেয়ে পরিবারগুলোতে ছড়িয়ে পড়ছে আশার আলো।",
     buttonLabel: "এখনই অনুদান দিন",
     buttonLink: "/donate",
-  },
-  {
-    id: 2,
-    image: "https://i.ibb.co.com/KjC0cVX/DALL-E-2024-11-19-05-13-31-A-heartwarming-scene-of-volunteers-distributing-warm-winter-clothing-to-p.webp",
-    heading: "একসঙ্গে আমরা পরিবর্তন আনতে পারি",
-    description: "এই শীতে প্রয়োজনমতো মানুষের হাতে শীতবস্ত্র তুলে দিচ্ছেন স্বেচ্ছাসেবীরা।",
-    buttonLabel: "কার্যক্রম দেখুন",
-    buttonLink: "/campaigns",
-  },
-  {
-    id: 3,
-    image: "https://i.ibb.co.com/L5mK6Vs/DALL-E-2024-11-19-05-15-26-A-touching-scene-of-a-child-smiling-joyfully-as-they-receive-warm-winter.webp",
-    heading: "প্রতিটি সদয় উদ্যোগই মূল্যবান",
-    description: "উষ্ণ পোশাক পেয়ে হাসছে একটি শিশু।",
-    buttonLabel: "অংশ নিন",
-    buttonLink: "/campaigns",
-  },
-  {
-    id: 4,
-    image: "https://i.ibb.co.com/cwxPF9M/DALL-E-2024-11-19-05-17-07-A-highly-realistic-and-heartwarming-scene-of-people-from-diverse-backgrou.webp",
-    heading: "আমাদের উদ্যোগে যুক্ত হোন",
-    description: "একসঙ্গে আমরা গড়ছি উজ্জ্বল ও উষ্ণ ভবিষ্যৎ।",
-    buttonLabel: "সহায়তা করুন",
-    buttonLink: "/how-to-help",
   },
 ];
 
@@ -45,20 +21,6 @@ export const DEFAULT_TEAM = [
     role: "প্রতিষ্ঠাতা ও নির্বাহী পরিচালক",
     image: "https://i.ibb.co.com/XZdP5hF/2023-05-15-1.jpg",
     bio: "আল আহসান ফাউন্ডেশনের প্রতিষ্ঠাতা ও প্রধান নির্বাহী।",
-  },
-  {
-    id: 2,
-    name: "মুফতি মুহিউস সুন্নাহ",
-    role: "প্রধান উপদেষ্টা",
-    image: "https://i.ibb.co.com/xLVb14x/website-photos-2.webp",
-    bio: "উপদেষ্টা পরিষদ প্রধান ও মানবিক কার্যক্রম সমন্বয়ক।",
-  },
-  {
-    id: 3,
-    name: "মো. শামীম এহসান",
-    role: "সমন্বয়ক ও প্রশাসন",
-    image: "https://i.ibb.co.com/nsgmKpH/Shamsh-Hadi.jpg",
-    bio: "মাঠ পর্যায় ও ভলান্টিয়ার সমন্বয় প্রধান।",
   },
 ];
 
@@ -228,7 +190,7 @@ export const DEFAULT_BRANDING = {
   overviewButtonText: "আমাদের কার্যক্রম দেখুন",
   overviewButtonLink: "/campaigns",
   navHomeText: "হোম",
-  navCampaignsText: "অনুদান কার্যক্রম",
+  navCampaignsText: "আমাদের কার্যক্রম",
   navDonateText: "অর্থ অনুদান",
   navHowToHelpText: "কীভাবে সহায়তা করবেন",
   navAboutText: "আমাদের সম্পর্কে",
@@ -243,7 +205,7 @@ export const DEFAULT_BRANDING = {
   itemDonationTitle: "সামগ্রী অনুদান দিন",
   itemDonationButtonText: "অনুদানের তথ্য জমা দিন",
   campaignOwner: {
-    name: "আব্দুল জব্বার আল নাহিদ",
+    name: "শামীম আহসান",
     email: "abnahid24@gmail.com",
     profile_picture: "https://i.ibb.co.com/XZdP5hF/2023-05-15-1.jpg",
     bio: "আল আহসান ফাউন্ডেশনের প্রতিষ্ঠাতা ও প্রধান নির্বাহী। সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াতে এই প্ল্যাটফর্মের প্রতিটি কার্যক্রমের দায়িত্বশীল তদারকি পরিচালনা করি।",
@@ -348,6 +310,16 @@ const mergeWithDefaults = (parsed) => {
   };
 };
 
+const hasCachedSettings = () => {
+  if (typeof window === "undefined") return true;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+    return Boolean(raw && raw.length > 10);
+  } catch {
+    return true;
+  }
+};
+
 const loadInitialSettings = () => {
   if (typeof window === "undefined") return DEFAULT_BRANDING;
   try {
@@ -383,11 +355,17 @@ const BrandingContext = createContext(null);
 export function BrandingProvider({ children }) {
   const [settings, setSettings] = useState(loadInitialSettings);
   const [campaigns, setCampaigns] = useState(loadInitialCampaigns);
+  const [isInitialLoading, setIsInitialLoading] = useState(() => !hasCachedSettings());
 
   useEffect(() => {
     let active = true;
     let serverSettingsLoaded = false;
     let serverCampaignsLoaded = false;
+
+    // Safety timeout: never let loading indicator block for more than 2.5s
+    const safetyTimer = setTimeout(() => {
+      if (active) setIsInitialLoading(false);
+    }, 2500);
 
     // localForage is only a fallback. A delayed local read must never overwrite
     // the authoritative Supabase response when it arrives first.
@@ -411,7 +389,10 @@ export function BrandingProvider({ children }) {
           localforage.setItem(STORAGE_KEYS.SETTINGS, next).catch(() => {});
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (active) setIsInitialLoading(false);
+      });
 
     fetch(getApiUrl("public-campaigns"), { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
@@ -425,7 +406,10 @@ export function BrandingProvider({ children }) {
       })
       .catch(() => {});
 
-    return () => { active = false; };
+    return () => {
+      active = false;
+      clearTimeout(safetyTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -459,34 +443,38 @@ export function BrandingProvider({ children }) {
         }
       } catch { /* ignore malformed local session cache */ }
 
-      const headers = {
-        "Content-Type": "application/json",
-        "x-admin-email": adminEmail,
-      };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const response = await fetch(getApiUrl("admin"), {
+      const res = await fetch(getApiUrl("save-content"), {
         method: "POST",
         headers,
-        body: JSON.stringify({ action: "save-content", value: { kind: "settings", settings: merged } }),
+        body: JSON.stringify({
+          key: "settings",
+          content: merged,
+          adminEmail,
+        }),
       });
-      if (response.ok) {
-        const result = await response.json();
-        if (result.value) {
-          const finalMerged = mergeWithDefaults(result.value);
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData?.error || `Server save failed with HTTP ${res.status}`);
+      }
+
+      // Re-fetch to ensure canonical state from database is stored
+      const verifyRes = await fetch(getApiUrl("public-settings"), { cache: "no-store" });
+      if (verifyRes.ok) {
+        const canonical = await verifyRes.json();
+        if (canonical && typeof canonical === "object") {
+          const finalMerged = mergeWithDefaults(canonical);
           setSettings(finalMerged);
           try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(finalMerged)); } catch { /* ignore */ }
-          return { value: finalMerged, persistence: result.persistence || "temporary" };
+          localforage.setItem(STORAGE_KEYS.SETTINGS, finalMerged).catch(() => {});
         }
       }
-      const err = await response.json().catch(() => ({}));
-      console.warn("Server save-content error:", err);
-      return { value: merged, persistence: "local", warning: err.error || "সার্ভারে সংরক্ষণ করা যায়নি।" };
-    } catch (error) {
-      console.info("Server-side sync skipped or failed; local persistence active.", error);
-      return { value: merged, persistence: "local", warning: "সার্ভারের সঙ্গে সংযোগ করা যায়নি।" };
+    } catch (err) {
+      console.error("Critical: Could not sync settings to server:", err);
+      throw err;
     }
   };
 
@@ -498,7 +486,7 @@ export function BrandingProvider({ children }) {
       console.warn("Failed writing campaigns to localStorage:", e);
     }
     try { await localforage.setItem(STORAGE_KEYS.CAMPAIGNS, next); } catch (e) {
-      console.warn("IndexedDB campaign save failed:", e);
+      console.warn("IndexedDB save failed for campaigns:", e);
     }
 
     try {
@@ -513,42 +501,76 @@ export function BrandingProvider({ children }) {
         }
       } catch { /* ignore malformed local session cache */ }
 
-      const headers = {
-        "Content-Type": "application/json",
-        "x-admin-email": adminEmail,
-      };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const response = await fetch(getApiUrl("admin"), {
+      const res = await fetch(getApiUrl("save-campaigns"), {
         method: "POST",
         headers,
-        body: JSON.stringify({ action: "save-content", value: { kind: "campaigns", campaigns: next } }),
+        body: JSON.stringify({
+          campaigns: next,
+          adminEmail,
+        }),
       });
-      if (response.ok) {
-        const result = await response.json();
-        if (Array.isArray(result.campaigns)) {
-          setCampaigns(result.campaigns);
-          try { localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(result.campaigns)); } catch { /* ignore */ }
-          localforage.setItem(STORAGE_KEYS.CAMPAIGNS, result.campaigns).catch(() => {});
-          return { value: result.campaigns, persistence: result.persistence || "temporary" };
-        }
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData?.error || `Campaigns save failed with HTTP ${res.status}`);
       }
-      const result = await response.json().catch(() => ({}));
-      return { value: next, persistence: "local", warning: result.error || "সার্ভারে সংরক্ষণ করা যায়নি।" };
-    } catch (error) {
-      console.info("Server-side sync skipped or failed; local persistence active.", error);
-      return { value: next, persistence: "local", warning: "সার্ভারের সঙ্গে সংযোগ করা যায়নি।" };
+
+      const result = await res.json();
+      if (Array.isArray(result?.campaigns)) {
+        setCampaigns(result.campaigns);
+        try { localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(result.campaigns)); } catch { /* ignore */ }
+        localforage.setItem(STORAGE_KEYS.CAMPAIGNS, result.campaigns).catch(() => {});
+      }
+    } catch (err) {
+      console.error("Critical: Could not sync campaigns to server:", err);
+      throw err;
     }
   };
 
-  const value = useMemo(() => ({ settings, campaigns, saveSettings, saveCampaigns }), [settings, campaigns]);
-  return <BrandingContext.Provider value={value}>{children}</BrandingContext.Provider>;
+  const value = useMemo(
+    () => ({
+      settings,
+      saveSettings,
+      campaigns,
+      saveCampaigns,
+      isInitialLoading,
+    }),
+    [settings, campaigns, isInitialLoading]
+  );
+
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-gray-800">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#1da1f2] to-[#0e71c8] flex items-center justify-center shadow-lg text-white">
+            <svg className="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+          </div>
+          <div className="text-center">
+            <h2 className="text-xl font-bold text-gray-900 tracking-tight">আল আহসান ফাউন্ডেশন</h2>
+            <p className="text-xs text-gray-500 mt-1">তথ্য লোড হচ্ছে...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <BrandingContext.Provider value={value}>
+      {children}
+    </BrandingContext.Provider>
+  );
 }
 
 export function useBranding() {
-  const context = useContext(BrandingContext);
-  if (!context) throw new Error("useBranding must be used within BrandingProvider");
-  return context;
+  const ctx = useContext(BrandingContext);
+  if (!ctx) {
+    throw new Error("useBranding must be used within BrandingProvider");
+  }
+  return ctx;
 }
