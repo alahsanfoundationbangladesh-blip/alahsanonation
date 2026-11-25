@@ -33,9 +33,9 @@ const Campaigns = () => {
       </Helmet>
       <div className="container mx-auto py-8">
         <div className="pb-8">
-          <h1 className="text-3xl font-bold text-center">অনুদান কার্যক্রম</h1>
+          <h1 className="text-3xl font-bold text-center">{settings.campaignsPageTitle || "অনুদান কার্যক্রম"}</h1>
           <p className="text-center text-gray-600 mt-4">
-            চলমান কার্যক্রমগুলো দেখুন এবং প্রয়োজনীয় শীতবস্ত্র ও অর্থ অনুদানের মাধ্যমে পাশে দাঁড়ান।
+            {settings.campaignsPageSubtitle || "চলমান কার্যক্রমগুলো দেখুন এবং প্রয়োজনীয় শীতবস্ত্র ও অর্থ অনুদানের মাধ্যমে পাশে দাঁড়ান।"}
           </p>
         </div>
 

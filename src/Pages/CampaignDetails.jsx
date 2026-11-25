@@ -66,7 +66,7 @@ const CampaignDetails = () => {
           onSubmit={handleSubmit}
           className="bg-white rounded-lg px-8 pt-6 pb-8 mt-8"
         >
-          <h2 className="text-2xl font-bold mb-4">সামগ্রী অনুদান দিন</h2>
+          <h2 className="text-2xl font-bold mb-4">{settings.itemDonationTitle || "সামগ্রী অনুদান দিন"}</h2>
 
           <div className="mb-4">
             <label
@@ -152,7 +152,7 @@ const CampaignDetails = () => {
             type="submit"
             className="bg-gradient-to-r from-[#1da1f2] to-[#0e71c8] animate-gradient text-white px-6 py-2 rounded-md"
           >
-            অনুদানের তথ্য জমা দিন
+            {settings.itemDonationButtonText || "অনুদানের তথ্য জমা দিন"}
           </button>
         </form>
       </div>

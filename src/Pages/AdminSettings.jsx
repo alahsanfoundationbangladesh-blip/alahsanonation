@@ -7,16 +7,17 @@ import { DEFAULT_BRANDING, DEFAULT_TEAM, STORAGE_KEYS, useBranding } from "../co
 import { API_BASE as API } from "../utils/apiConfig";
 const tabs = [
   ["overview", "১. সাইট পরিচিতি ও থিম"],
-  ["hero", "২. হিরো স্লাইডার"],
-  ["team", "৩. নির্বাহী কমিটি ও দল"],
-  ["about", "৪. আমাদের সম্পর্কে পাতা"],
-  ["howItWorks", "৫. যেভাবে কাজ করে ও বিভাগ"],
-  ["testimonials", "৬. মানুষের অভিজ্ঞতা ও রিভিউ"],
-  ["faqs", "৭. সাধারণ জিজ্ঞাসা (FAQ)"],
-  ["contact", "৮. যোগাযোগ ও সোশ্যাল লিংক"],
-  ["campaigns", "৯. কার্যক্রম ও ছবি"],
-  ["donations", "১০. অনুদান যাচাই"],
-  ["expenses", "১১. আয়-ব্যয় হিসাব"],
+  ["siteText", "২. সাইটের লেখা ও মেনু"],
+  ["hero", "৩. হিরো স্লাইডার"],
+  ["team", "৪. নির্বাহী কমিটি ও উদ্যোক্তা"],
+  ["about", "৫. আমাদের সম্পর্কে পাতা"],
+  ["howItWorks", "৬. যেভাবে কাজ করে ও বিভাগ"],
+  ["testimonials", "৭. মানুষের অভিজ্ঞতা ও রিভিউ"],
+  ["faqs", "৮. সাধারণ জিজ্ঞাসা (FAQ)"],
+  ["contact", "৯. যোগাযোগ ও সোশ্যাল লিংক"],
+  ["campaigns", "১০. কার্যক্রম ও ছবি"],
+  ["donations", "১১. অনুদান যাচাই"],
+  ["expenses", "১২. আয়-ব্যয় হিসাব"],
 ];
 const money = (amount) => `৳${Number(amount || 0).toLocaleString("bn-BD")}`;
 const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
@@ -250,6 +251,16 @@ const AdminSettings = () => {
     setForm((current) => ({
       ...current,
       heroSlides: (current.heroSlides || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateCampaignOwner = (key, value) => {
+    setForm((current) => ({
+      ...current,
+      campaignOwner: {
+        ...(current.campaignOwner || DEFAULT_BRANDING.campaignOwner),
+        [key]: value,
+      },
     }));
   };
 
@@ -609,6 +620,89 @@ const AdminSettings = () => {
             </form>
           )}
 
+          {/* 2. SITE-WIDE TEXT */}
+          {!loading && section === "siteText" && (
+            <form onSubmit={(e) => saveBranding(e, "সাইটের লেখা ও মেনু স্থায়ীভাবে সংরক্ষণ করা হয়েছে।")} className="space-y-5">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">২. সাইটের লেখা ও মেনু</h2>
+                <p className="mt-1 text-gray-600 text-sm">নেভিগেশন মেনু, হোমপেজ বাটন, অর্থ অনুদান পাতা, কার্যক্রম পাতা এবং ফর্মের প্রতিটি লেখা সম্পাদনা করুন।</p>
+              </div>
+
+              {/* 1. Header Nav */}
+              <div className="rounded-2xl border border-gray-200 p-5 bg-gray-50/50 space-y-4">
+                <h3 className="font-bold text-lg text-primary">প্রধান নেভিগেশন মেনুর লেখা</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {[["navHomeText", "হোম"], ["navCampaignsText", "অনুদান কার্যক্রম"], ["navDonateText", "অর্থ অনুদান"], ["navHowToHelpText", "কীভাবে সহায়তা করবেন"], ["navAboutText", "আমাদের সম্পর্কে"], ["navContactText", "যোগাযোগ"]].map(([key, label]) => (
+                    <label key={key} className="block text-sm font-semibold">{label}
+                      <input className={inputClass} maxLength="60" value={form[key] || ""} onChange={(e) => setForm((current) => ({ ...current, [key]: e.target.value }))} />
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Homepage Overview Button */}
+              <div className="rounded-2xl border border-gray-200 p-5 bg-gray-50/50 space-y-4">
+                <h3 className="font-bold text-lg text-primary">হোমপেজের পরিচিতি বাটন</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block text-sm font-semibold">বাটনের লেখা
+                    <input className={inputClass} maxLength="80" value={form.overviewButtonText || ""} onChange={(e) => setForm((current) => ({ ...current, overviewButtonText: e.target.value }))} />
+                  </label>
+                  <label className="block text-sm font-semibold">বাটনের গন্তব্য (লিংক)
+                    <input className={inputClass} maxLength="200" placeholder="/about" value={form.overviewButtonLink || ""} onChange={(e) => setForm((current) => ({ ...current, overviewButtonLink: e.target.value }))} />
+                  </label>
+                </div>
+              </div>
+
+              {/* 3. Donate Page Text */}
+              <div className="rounded-2xl border border-gray-200 p-5 bg-gray-50/50 space-y-4">
+                <h3 className="font-bold text-lg text-primary">অর্থ অনুদান পাতা (/donate)</h3>
+                <label className="block text-sm font-semibold">পাতার ট্যাগলাইন
+                  <input className={inputClass} maxLength="140" value={form.donatePageTagline || ""} placeholder="নিরাপদ ও যাচাইকৃত অনুদান" onChange={(e) => setForm((current) => ({ ...current, donatePageTagline: e.target.value }))} />
+                </label>
+                <label className="block text-sm font-semibold">পাতার মূল শিরোনাম
+                  <input className={inputClass} maxLength="140" value={form.donatePageTitle || ""} placeholder="অর্থ অনুদান দিন" onChange={(e) => setForm((current) => ({ ...current, donatePageTitle: e.target.value }))} />
+                </label>
+                <label className="block text-sm font-semibold">পাতার উপশিরোনাম (Subtitle)
+                  <textarea rows="2" className={inputClass} maxLength="300" value={form.donatePageSubtitle || ""} placeholder="বিকাশ, নগদ অথবা রকেট থেকে অর্থ পাঠিয়ে TrxID দিয়ে অনুদান জমা করুন।" onChange={(e) => setForm((current) => ({ ...current, donatePageSubtitle: e.target.value }))} />
+                </label>
+                <label className="block text-sm font-semibold">টাকা পাঠানোর নির্দেশনার শিরোনাম
+                  <input className={inputClass} maxLength="140" value={form.donateInstructionsTitle || ""} placeholder="টাকা পাঠানোর নম্বর" onChange={(e) => setForm((current) => ({ ...current, donateInstructionsTitle: e.target.value }))} />
+                </label>
+                <label className="block text-sm font-semibold">টাকা পাঠানোর নির্দেশনার বিবরণ
+                  <textarea rows="3" className={inputClass} maxLength="600" value={form.donateInstructionsText || ""} placeholder="বিকাশ, নগদ বা রকেট থেকে নিচের নম্বরে টাকা পাঠান..." onChange={(e) => setForm((current) => ({ ...current, donateInstructionsText: e.target.value }))} />
+                </label>
+              </div>
+
+              {/* 4. Campaigns Page Text */}
+              <div className="rounded-2xl border border-gray-200 p-5 bg-gray-50/50 space-y-4">
+                <h3 className="font-bold text-lg text-primary">অনুদান কার্যক্রম পাতা (/campaigns)</h3>
+                <label className="block text-sm font-semibold">কার্যক্রম পাতার শিরোনাম
+                  <input className={inputClass} maxLength="140" value={form.campaignsPageTitle || ""} placeholder="অনুদান কার্যক্রম" onChange={(e) => setForm((current) => ({ ...current, campaignsPageTitle: e.target.value }))} />
+                </label>
+                <label className="block text-sm font-semibold">কার্যক্রম পাতার উপশিরোনাম
+                  <textarea rows="2" className={inputClass} maxLength="300" value={form.campaignsPageSubtitle || ""} placeholder="চলমান কার্যক্রমগুলো দেখুন এবং প্রয়োজনীয় শীতবস্ত্র ও অর্থ অনুদানের মাধ্যমে পাশে দাঁড়ান।" onChange={(e) => setForm((current) => ({ ...current, campaignsPageSubtitle: e.target.value }))} />
+                </label>
+              </div>
+
+              {/* 5. Campaign Details Form Text */}
+              <div className="rounded-2xl border border-gray-200 p-5 bg-gray-50/50 space-y-4">
+                <h3 className="font-bold text-lg text-primary">সামগ্রী অনুদান ফর্ম (/campaign/:id)</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block text-sm font-semibold">ফর্মের শিরোনাম
+                    <input className={inputClass} maxLength="140" value={form.itemDonationTitle || ""} placeholder="সামগ্রী অনুদান দিন" onChange={(e) => setForm((current) => ({ ...current, itemDonationTitle: e.target.value }))} />
+                  </label>
+                  <label className="block text-sm font-semibold">জমা বোতামের লেখা
+                    <input className={inputClass} maxLength="80" value={form.itemDonationButtonText || ""} placeholder="অনুদানের তথ্য জমা দিন" onChange={(e) => setForm((current) => ({ ...current, itemDonationButtonText: e.target.value }))} />
+                  </label>
+                </div>
+              </div>
+
+              <button disabled={busy} className="rounded-xl bg-primary px-6 py-3 font-semibold text-white shadow hover:opacity-90 disabled:opacity-60">
+                {busy ? "সংরক্ষণ হচ্ছে…" : "সাইটের লেখা সংরক্ষণ করুন"}
+              </button>
+            </form>
+          )}
+
           {/* 2. HERO SLIDER */}
           {!loading && section === "hero" && (
             <div className="space-y-5">
@@ -671,13 +765,13 @@ const AdminSettings = () => {
             </div>
           )}
 
-          {/* 3. EXECUTIVE COMMITTEE & TEAM */}
+          {/* 4. EXECUTIVE COMMITTEE & TEAM */}
           {!loading && section === "team" && (
             <div className="space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800">৩. নির্বাহী কমিটি ও দল (Team)</h2>
-                  <p className="mt-1 text-gray-600 text-sm">ওয়েবসাইটের নির্বাহী কমিটির নাম, পদবি, ছবি ও বিবরণ পরিবর্তন বা নতুন সদস্য যুক্ত করুন।</p>
+                  <h2 className="text-2xl font-bold text-gray-800">৪. নির্বাহী কমিটি ও উদ্যোক্তা (Team & Organizer)</h2>
+                  <p className="mt-1 text-gray-600 text-sm">ওয়েবসাইটের নির্বাহী কমিটির নাম, পদবি, ছবি ও বিবরণ এবং কার্যক্রম উদ্যোক্তার প্রোফাইল পরিচালনা করুন।</p>
                 </div>
                 <button type="button" onClick={addTeamMember} className="rounded-xl bg-primary/10 border border-primary px-4 py-2 font-semibold text-primary hover:bg-primary/20 text-sm">
                   + নতুন সদস্য যোগ করুন
@@ -727,7 +821,50 @@ const AdminSettings = () => {
                 ))}
               </div>
 
-              <button disabled={busy} onClick={(e) => saveBranding(e, "নির্বাহী কমিটির তথ্য স্থায়ীভাবে সংরক্ষণ করা হয়েছে।")} className="rounded-xl bg-primary px-6 py-3 font-semibold text-white shadow hover:opacity-90 disabled:opacity-60">
+              {/* Campaign Owner / Organizer Section */}
+              <div className="rounded-2xl border border-gray-200 p-5 bg-gray-50/50 space-y-4 mt-8">
+                <h3 className="font-bold text-lg text-primary">ক্যাম্পেইন উদ্যোক্তা / অর্গানাইজারের প্রোফাইল</h3>
+                <p className="text-xs text-gray-500">কার্যক্রমের বিস্তারিত পাতায় (Campaign Details) প্রদর্শিত উদ্যোক্তা বা ফাউন্ডেশন প্রধানের তথ্য।</p>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block text-sm font-semibold">উদ্যোক্তার নাম
+                    <input className={inputClass} value={form.campaignOwner?.name || ""} onChange={(e) => updateCampaignOwner("name", e.target.value)} />
+                  </label>
+                  <label className="block text-sm font-semibold">ইমেইল
+                    <input type="email" className={inputClass} value={form.campaignOwner?.email || ""} onChange={(e) => updateCampaignOwner("email", e.target.value)} />
+                  </label>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold">প্রোফাইল ছবি (আপলোড বা লিংক দিন)</label>
+                  <div className="flex flex-col sm:flex-row gap-3 items-center">
+                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, (val) => updateCampaignOwner("profile_picture", val))} className="text-sm" />
+                    <input type="text" placeholder="ছবির URL" value={form.campaignOwner?.profile_picture || ""} onChange={(e) => updateCampaignOwner("profile_picture", e.target.value)} className={inputClass} />
+                  </div>
+                  {form.campaignOwner?.profile_picture && <img src={form.campaignOwner.profile_picture} alt="Owner" className="h-20 w-20 rounded-full object-cover border mt-2" />}
+                </div>
+
+                <label className="block text-sm font-semibold">সংক্ষিপ্ত বিবরণ বা পরিচয়
+                  <textarea rows="3" className={inputClass} value={form.campaignOwner?.bio || ""} onChange={(e) => updateCampaignOwner("bio", e.target.value)} />
+                </label>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block text-sm font-semibold">ফেসবুক প্রোফাইল URL
+                    <input className={inputClass} value={form.campaignOwner?.facebookUrl || ""} placeholder="https://facebook.com/..." onChange={(e) => updateCampaignOwner("facebookUrl", e.target.value)} />
+                  </label>
+                  <label className="block text-sm font-semibold">লিঙ্কডইন প্রোফাইল URL
+                    <input className={inputClass} value={form.campaignOwner?.linkedinUrl || ""} placeholder="https://linkedin.com/in/..." onChange={(e) => updateCampaignOwner("linkedinUrl", e.target.value)} />
+                  </label>
+                  <label className="block text-sm font-semibold">ইনস্টাগ্রাম প্রোফাইল URL
+                    <input className={inputClass} value={form.campaignOwner?.instagramUrl || ""} placeholder="https://instagram.com/..." onChange={(e) => updateCampaignOwner("instagramUrl", e.target.value)} />
+                  </label>
+                  <label className="block text-sm font-semibold">টুইটার / X প্রোফাইল URL
+                    <input className={inputClass} value={form.campaignOwner?.twitterUrl || ""} placeholder="https://twitter.com/..." onChange={(e) => updateCampaignOwner("twitterUrl", e.target.value)} />
+                  </label>
+                </div>
+              </div>
+
+              <button disabled={busy} onClick={(e) => saveBranding(e, "নির্বাহী কমিটি ও উদ্যোক্তার তথ্য স্থায়ীভাবে সংরক্ষণ করা হয়েছে।")} className="rounded-xl bg-primary px-6 py-3 font-semibold text-white shadow hover:opacity-90 disabled:opacity-60">
                 {busy ? "সংরক্ষণ হচ্ছে…" : "নির্বাহী কমিটির তথ্য সংরক্ষণ"}
               </button>
             </div>
@@ -737,7 +874,7 @@ const AdminSettings = () => {
           {!loading && section === "about" && (
             <form onSubmit={(e) => saveBranding(e, "আমাদের সম্পর্কে পাতার তথ্য স্থায়ীভাবে সংরক্ষণ করা হয়েছে।")} className="space-y-5">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">৪. আমাদের সম্পর্কে পাতা (/about)</h2>
+                <h2 className="text-2xl font-bold text-gray-800">৫. আমাদের সম্পর্কে পাতা (/about)</h2>
                 <p className="mt-1 text-gray-600 text-sm">আমাদের লক্ষ্য (Mission), স্বপ্ন (Vision) এবং যুক্ত হওয়ার আহ্বান (CTA) অংশের লেখা ও ছবি সম্পাদনা করুন।</p>
               </div>
 
@@ -809,7 +946,7 @@ const AdminSettings = () => {
           {!loading && section === "howItWorks" && (
             <form onSubmit={(e) => saveBranding(e, "যেভাবে কাজ করে সেকশনটি স্থায়ীভাবে সংরক্ষণ করা হয়েছে।")} className="space-y-5">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">৫. যেভাবে কাজ করে ও বিভাগ</h2>
+                <h2 className="text-2xl font-bold text-gray-800">৬. যেভাবে কাজ করে ও বিভাগ</h2>
                 <p className="mt-1 text-gray-600 text-sm">সহায়তা কার্যক্রম পরিচালনার ধাপসমূহ, কার্যক্রমের বিভাগ তালিকা ও ধাপচিত্র পরিচালনা করুন।</p>
               </div>
 
@@ -870,7 +1007,7 @@ const AdminSettings = () => {
             <div className="space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800">৬. মানুষের অভিজ্ঞতা ও রিভিউ</h2>
+                  <h2 className="text-2xl font-bold text-gray-800">৭. মানুষের অভিজ্ঞতা ও রিভিউ</h2>
                   <p className="mt-1 text-gray-600 text-sm">উপকারভোগী বা স্বেচ্ছাসেবকদের অভিজ্ঞতা, বক্তব্য ও ছবি পরিচালনা করুন।</p>
                 </div>
                 <button type="button" onClick={addTestimonial} className="rounded-xl bg-primary/10 border border-primary px-4 py-2 font-semibold text-primary hover:bg-primary/20 text-sm">
@@ -933,7 +1070,7 @@ const AdminSettings = () => {
             <div className="space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800">৭. সাধারণ জিজ্ঞাসা (FAQ)</h2>
+                  <h2 className="text-2xl font-bold text-gray-800">৮. সাধারণ জিজ্ঞাসা (FAQ)</h2>
                   <p className="mt-1 text-gray-600 text-sm">সাধারণ জিজ্ঞাসার প্রশ্ন ও উত্তরসমূহ সম্পাদনা করুন বা নতুন প্রশ্ন যুক্ত করুন।</p>
                 </div>
                 <button type="button" onClick={addFaq} className="rounded-xl bg-primary/10 border border-primary px-4 py-2 font-semibold text-primary hover:bg-primary/20 text-sm">
@@ -976,7 +1113,7 @@ const AdminSettings = () => {
           {!loading && section === "contact" && (
             <form onSubmit={(e) => saveBranding(e, "যোগাযোগ ও সোশ্যাল মিডিয়ার তথ্য স্থায়ীভাবে সংরক্ষণ করা হয়েছে।")} className="space-y-5">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">৮. যোগাযোগ, মোবাইল ব্যাংকিং ও সোশ্যাল লিংক</h2>
+                <h2 className="text-2xl font-bold text-gray-800">৯. যোগাযোগ, মোবাইল ব্যাংকিং ও সোশ্যাল লিংক</h2>
                 <p className="mt-1 text-gray-600 text-sm">অফিসিয়াল ইমেইল, হেল্পলাইন, বিকাশ/নগদ/রকেট নম্বর, ঠিকানা এবং সোশ্যাল মিডিয়া লিংক পরিবর্তন করুন।</p>
               </div>
 
@@ -991,6 +1128,21 @@ const AdminSettings = () => {
                   </label>
                   <label className="block text-sm font-semibold sm:col-span-2">ঠিকানা
                     <input className={inputClass} value={contact.address || ""} onChange={(e) => updateContact("address", e.target.value)} />
+                  </label>
+                  <label className="block text-sm font-semibold">দ্রুত লিংক শিরোনাম
+                    <input className={inputClass} value={contact.quickLinksTitle || ""} onChange={(e) => updateContact("quickLinksTitle", e.target.value)} />
+                  </label>
+                  <label className="block text-sm font-semibold">যোগাযোগ অংশের শিরোনাম
+                    <input className={inputClass} value={contact.contactInfoTitle || ""} onChange={(e) => updateContact("contactInfoTitle", e.target.value)} />
+                  </label>
+                  <label className="block text-sm font-semibold">হেল্পলাইন লেবেল
+                    <input className={inputClass} value={contact.helplineLabel || ""} onChange={(e) => updateContact("helplineLabel", e.target.value)} />
+                  </label>
+                  <label className="block text-sm font-semibold">ফুটারের কপিরাইট লেখা
+                    <input className={inputClass} value={contact.copyrightText || ""} onChange={(e) => updateContact("copyrightText", e.target.value)} />
+                  </label>
+                  <label className="block text-sm font-semibold sm:col-span-2">ব্যাংক হিসাবের তথ্য
+                    <textarea rows="2" className={inputClass} value={contact.bankDetails || ""} onChange={(e) => updateContact("bankDetails", e.target.value)} />
                   </label>
                 </div>
               </div>
@@ -1032,6 +1184,16 @@ const AdminSettings = () => {
                 <label className="block text-sm font-semibold">ফুটারের সংক্ষিপ্ত পরিচিতি
                   <textarea rows="2" className={inputClass} value={contact.footerDescription || ""} onChange={(e) => updateContact("footerDescription", e.target.value)} />
                 </label>
+                <div className="rounded-xl border border-gray-200 p-4 bg-white space-y-4">
+                  <h4 className="font-semibold text-gray-800">যোগাযোগ পাতার ফর্ম ও লেবেল</h4>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {[["headerTitle", "যোগাযোগ পাতার শিরোনাম"], ["headerSubtitle", "যোগাযোগ পাতার উপশিরোনাম"], ["formTitle", "ফর্মের শিরোনাম"], ["formSubtitle", "ফর্মের বিবরণ"], ["nameLabel", "নামের লেবেল"], ["namePlaceholder", "নামের placeholder"], ["emailLabel", "ইমেইলের লেবেল"], ["emailPlaceholder", "ইমেইল placeholder"], ["messageLabel", "বার্তার লেবেল"], ["messagePlaceholder", "বার্তা placeholder"], ["submitButtonText", "ফর্ম বোতামের লেখা"], ["successMessage", "সফলতার বার্তা"], ["contactDetailsTitle", "যোগাযোগ তথ্যের শিরোনাম"], ["contactDetailsSubtitle", "যোগাযোগ তথ্যের বিবরণ"], ["donationHelpLabel", "অনুদান/হেল্পলাইন লেবেল"], ["officialEmailLabel", "অফিসিয়াল ইমেইল লেবেল"], ["addressLabel", "ঠিকানার লেবেল"], ["mobileBankingTitle", "মোবাইল ব্যাংকিং শিরোনাম"], ["bkashLabel", "বিকাশ লেবেল"], ["nagadLabel", "নগদ লেবেল"], ["rocketLabel", "রকেট লেবেল"]].map(([key, label]) => (
+                      <label key={key} className="block text-sm font-semibold">{label}
+                        <input className={inputClass} value={contact[key] || ""} onChange={(e) => updateContact(key, e.target.value)} />
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <button disabled={busy} className="rounded-xl bg-primary px-6 py-3 font-semibold text-white shadow hover:opacity-90 disabled:opacity-60">

@@ -207,9 +207,14 @@ export const DEFAULT_CONTACT = {
   youtubeUrl: "",
   linkedinUrl: "",
   footerDescription: "মানবিক সহায়তা ও শীতবস্ত্র বিতরণের মাধ্যমে মানুষের পাশে দাঁড়াই। আমাদের উদ্যোগে যুক্ত হোন।",
+  quickLinksTitle: "দ্রুত লিংক",
+  contactInfoTitle: "যোগাযোগের ঠিকানা",
+  helplineLabel: "হেল্পলাইন",
+  copyrightText: "কপিরাইট © 2026 · সর্বস্বত্ব সংরক্ষিত — আল আহসান ফাউন্ডেশন",
   bkashNumber: "8801312515643",
   nagadNumber: "8801312515643",
   rocketNumber: "8801312515643",
+  bankDetails: "হিসাবের নাম: আল আহসান ফাউন্ডেশন, ব্যাংক: ইসলামী ব্যাংক বাংলাদেশ লিমিটেড",
 };
 
 export const DEFAULT_BRANDING = {
@@ -219,6 +224,33 @@ export const DEFAULT_BRANDING = {
   overviewTitle: "আল আহসান ফাউন্ডেশন সম্পর্কে",
   overview: "মানবিক সহায়তা ও শীতবস্ত্র বিতরণের মাধ্যমে সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াই।",
   overviewImage: "https://i.ibb.co.com/hFKT7MM/pexels-photo-6995106.webp",
+  overviewButtonText: "আমাদের সম্পর্কে আরও জানুন",
+  overviewButtonLink: "/about",
+  navHomeText: "হোম",
+  navCampaignsText: "অনুদান কার্যক্রম",
+  navDonateText: "অর্থ অনুদান",
+  navHowToHelpText: "কীভাবে সহায়তা করবেন",
+  navAboutText: "আমাদের সম্পর্কে",
+  navContactText: "যোগাযোগ",
+  donatePageTagline: "নিরাপদ ও যাচাইকৃত অনুদান",
+  donatePageTitle: "অর্থ অনুদান দিন",
+  donatePageSubtitle: "বিকাশ, নগদ অথবা রকেট থেকে অর্থ পাঠিয়ে TrxID দিয়ে অনুদান জমা করুন।",
+  donateInstructionsTitle: "টাকা পাঠানোর নম্বর",
+  donateInstructionsText: "বিকাশ, নগদ বা রকেট থেকে নিচের নম্বরে টাকা পাঠান। সফল লেনদেনের পর পাওয়া TrxID ফর্মে দিন। অনুদান যাচাই না হওয়া পর্যন্ত এটি অপেক্ষমাণ থাকবে।",
+  campaignsPageTitle: "অনুদান কার্যক্রম",
+  campaignsPageSubtitle: "চলমান কার্যক্রমগুলো দেখুন এবং প্রয়োজনীয় শীতবস্ত্র ও অর্থ অনুদানের মাধ্যমে পাশে দাঁড়ান।",
+  itemDonationTitle: "সামগ্রী অনুদান দিন",
+  itemDonationButtonText: "অনুদানের তথ্য জমা দিন",
+  campaignOwner: {
+    name: "আব্দুল জব্বার আল নাহিদ",
+    email: "abnahid24@gmail.com",
+    profile_picture: "https://i.ibb.co.com/XZdP5hF/2023-05-15-1.jpg",
+    bio: "আল আহসান ফাউন্ডেশনের প্রতিষ্ঠাতা ও প্রধান নির্বাহী। সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াতে এই প্ল্যাটফর্মের প্রতিটি কার্যক্রমের দায়িত্বশীল তদারকি পরিচালনা করি।",
+    facebookUrl: "https://www.facebook.com/abnahidagency",
+    linkedinUrl: "https://www.linkedin.com/in/abnahid",
+    instagramUrl: "https://www.instagram.com/abnahidseo",
+    twitterUrl: "https://twitter.com/xahid_420",
+  },
   sliderAutoplayDelay: 5,
   heroSlides: DEFAULT_SLIDES,
   about: DEFAULT_ABOUT,
@@ -274,6 +306,16 @@ const mergeWithDefaults = (parsed) => {
     contact: {
       ...DEFAULT_CONTACT,
       ...(parsed.contact || {}),
+    },
+    campaignOwner: {
+      name: parsed.campaignOwner?.name || DEFAULT_BRANDING.campaignOwner.name,
+      email: parsed.campaignOwner?.email || DEFAULT_BRANDING.campaignOwner.email,
+      profile_picture: parsed.campaignOwner?.profile_picture || DEFAULT_BRANDING.campaignOwner.profile_picture,
+      bio: parsed.campaignOwner?.bio || DEFAULT_BRANDING.campaignOwner.bio,
+      facebookUrl: parsed.campaignOwner?.facebookUrl !== undefined ? parsed.campaignOwner.facebookUrl : DEFAULT_BRANDING.campaignOwner.facebookUrl,
+      linkedinUrl: parsed.campaignOwner?.linkedinUrl !== undefined ? parsed.campaignOwner.linkedinUrl : DEFAULT_BRANDING.campaignOwner.linkedinUrl,
+      instagramUrl: parsed.campaignOwner?.instagramUrl !== undefined ? parsed.campaignOwner.instagramUrl : DEFAULT_BRANDING.campaignOwner.instagramUrl,
+      twitterUrl: parsed.campaignOwner?.twitterUrl !== undefined ? parsed.campaignOwner.twitterUrl : DEFAULT_BRANDING.campaignOwner.twitterUrl,
     },
   };
 };
@@ -357,14 +399,30 @@ export function BrandingProvider({ children }) {
     // 2. Immediately update current React state
     setSettings(merged);
 
-    // 3. Attempt server sync in the background
+    // 3. Attempt server sync with authentication
     try {
+      let token = "";
+      let adminEmail = "alahsanfoundationbangladesh@gmail.com";
+      try {
+        const sessionRaw = localStorage.getItem("ahf_user_session");
+        if (sessionRaw) {
+          const sessionObj = JSON.parse(sessionRaw);
+          if (sessionObj?.token) token = sessionObj.token;
+          if (sessionObj?.email) adminEmail = sessionObj.email;
+        }
+      } catch {}
+
+      const headers = {
+        "Content-Type": "application/json",
+        "x-admin-email": adminEmail,
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(getApiUrl("admin"), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-email": "alahsanfoundationbangladesh@gmail.com",
-        },
+        headers,
         body: JSON.stringify({ action: "save-content", value: { kind: "settings", settings: merged } }),
       });
       if (response.ok) {
@@ -375,6 +433,9 @@ export function BrandingProvider({ children }) {
           try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(finalMerged)); } catch { /* ignore */ }
           return finalMerged;
         }
+      } else {
+        const err = await response.json().catch(() => ({}));
+        console.warn("Server save-content error:", err);
       }
     } catch (error) {
       console.info("Server-side sync skipped or failed; local persistence active.", error);
@@ -391,12 +452,28 @@ export function BrandingProvider({ children }) {
     setCampaigns(next);
 
     try {
+      let token = "";
+      let adminEmail = "alahsanfoundationbangladesh@gmail.com";
+      try {
+        const sessionRaw = localStorage.getItem("ahf_user_session");
+        if (sessionRaw) {
+          const sessionObj = JSON.parse(sessionRaw);
+          if (sessionObj?.token) token = sessionObj.token;
+          if (sessionObj?.email) adminEmail = sessionObj.email;
+        }
+      } catch {}
+
+      const headers = {
+        "Content-Type": "application/json",
+        "x-admin-email": adminEmail,
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(getApiUrl("admin"), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-email": "alahsanfoundationbangladesh@gmail.com",
-        },
+        headers,
         body: JSON.stringify({ action: "save-content", value: { kind: "campaigns", campaigns: next } }),
       });
       if (response.ok) {
