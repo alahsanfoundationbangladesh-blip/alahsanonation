@@ -351,35 +351,38 @@ export function BrandingProvider({ children }) {
 
   useEffect(() => {
     let active = true;
+    let serverSettingsLoaded = false;
+    let serverCampaignsLoaded = false;
 
-    // localForage uses IndexedDB and can store larger images than localStorage.
+    // localForage is only a fallback. A delayed local read must never overwrite
+    // the authoritative Supabase response when it arrives first.
     localforage.getItem(STORAGE_KEYS.SETTINGS).then((saved) => {
-      if (active && saved && typeof saved === "object") {
-        setSettings((current) => mergeWithDefaults({ ...current, ...saved }));
+      if (active && !serverSettingsLoaded && saved && typeof saved === "object") {
+        setSettings(mergeWithDefaults(saved));
       }
     }).catch(() => {});
     localforage.getItem(STORAGE_KEYS.CAMPAIGNS).then((saved) => {
-      if (active && Array.isArray(saved)) setCampaigns(saved);
+      if (active && !serverCampaignsLoaded && Array.isArray(saved)) setCampaigns(saved);
     }).catch(() => {});
 
-    fetch(getApiUrl("public-settings"))
+    fetch(getApiUrl("public-settings"), { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((value) => {
         if (active && value && typeof value === "object" && Object.keys(value).length > 0) {
-          setSettings((prev) => {
-            const next = mergeWithDefaults({ ...prev, ...value });
-            try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(next)); } catch { /* ignore */ }
-            localforage.setItem(STORAGE_KEYS.SETTINGS, next).catch(() => {});
-            return next;
-          });
+          serverSettingsLoaded = true;
+          const next = mergeWithDefaults(value);
+          setSettings(next);
+          try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(next)); } catch { /* ignore */ }
+          localforage.setItem(STORAGE_KEYS.SETTINGS, next).catch(() => {});
         }
       })
       .catch(() => {});
 
-    fetch(getApiUrl("public-campaigns"))
+    fetch(getApiUrl("public-campaigns"), { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((value) => {
-        if (active && Array.isArray(value) && value.length > 0) {
+        if (active && Array.isArray(value)) {
+          serverCampaignsLoaded = true;
           setCampaigns(value);
           try { localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(value)); } catch { /* ignore */ }
           localforage.setItem(STORAGE_KEYS.CAMPAIGNS, value).catch(() => {});
