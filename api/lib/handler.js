@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import {
   isSupabaseConfigured,
   dbGetSetting,
@@ -31,6 +32,15 @@ const validImage = (value) => {
   if (value.startsWith("/") && !value.startsWith("//")) return true;
   try { return new URL(value).protocol === "https:"; } catch { return false; }
 };
+
+
+function createToken(payload) {
+  const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
+  const body = Buffer.from(JSON.stringify({ ...payload, exp: Math.floor(Date.now() / 1000) + 30 * 24 * 3600 })).toString("base64url");
+  const secret = process.env.ADMIN_SECRET_KEY || "ahf-secret-key-2026";
+  const signature = crypto.createHmac("sha256", secret).update(`${header}.${body}`).digest("base64url");
+  return `${header}.${body}.${signature}`;
+}
 
 function verifyAdmin(authHeader, adminEmailHeader, clientUser) {
   // 1. Client context / Netlify Identity
@@ -179,6 +189,188 @@ export async function handleApiRequest(req, res, context) {
   const useSupabase = isSupabaseConfigured();
 
   try {
+    // 0. Auth Login (POST)
+    if (action === "auth-login" && method === "POST") {
+      const input = await parseBody();
+      const email = cleanText(input?.email, 254).toLowerCase();
+      const password = String(input?.password || "");
+
+      if (!email || !password) {
+        return send({ error: "ইমেইল ও পাসওয়ার্ড প্রদান করুন।" }, 400);
+      }
+
+      if (email === ADMIN_EMAIL.toLowerCase()) {
+        const envAdminPass = process.env.ADMIN_PASSWORD;
+        let storedAuth = null;
+        if (useSupabase) {
+          storedAuth = await dbGetSetting("admin_auth");
+        } else {
+          storedAuth = memoryContent.get("admin_auth");
+        }
+
+        let isValid = false;
+        if (envAdminPass) {
+          isValid = (password === envAdminPass);
+        } else if (storedAuth && (storedAuth.passwordHash || storedAuth.password)) {
+          const hash = crypto.createHash("sha256").update(password).digest("hex");
+          isValid = (storedAuth.passwordHash === hash || storedAuth.password === password);
+        } else {
+          // First time admin setup - automatically register provided password in Supabase!
+          const hash = crypto.createHash("sha256").update(password).digest("hex");
+          const authRec = {
+            email: ADMIN_EMAIL,
+            passwordHash: hash,
+            updatedAt: new Date().toISOString(),
+          };
+          if (useSupabase) {
+            await dbSetSetting("admin_auth", authRec);
+          } else {
+            memoryContent.set("admin_auth", authRec);
+          }
+          isValid = true;
+        }
+
+        if (!isValid) {
+          return send({ error: "পাসওয়ার্ড সঠিক নয়।" }, 401);
+        }
+
+        const token = createToken({ email: ADMIN_EMAIL, role: "admin", name: "আল আহসান অ্যাডমিন" });
+        return send({
+          ok: true,
+          user: {
+            id: "admin-ahf",
+            email: ADMIN_EMAIL,
+            displayName: "আল আহসান অ্যাডমিন",
+            role: "admin",
+            photoURL: "/Warm-Hearts-Initiative.png",
+            token,
+          },
+          token,
+        });
+      }
+
+      // Regular user login
+      let usersList = [];
+      if (useSupabase) {
+        usersList = (await dbGetSetting("registered_users")) || [];
+      }
+      const foundUser = usersList.find((u) => u.email?.toLowerCase() === email);
+      if (!foundUser) {
+        return send({ error: "এই ইমেইলে কোনো অ্যাকাউন্ট পাওয়া যায়নি।" }, 404);
+      }
+      const hash = crypto.createHash("sha256").update(password).digest("hex");
+      if (foundUser.passwordHash !== hash && foundUser.password !== password) {
+        return send({ error: "পাসওয়ার্ড সঠিক নয়।" }, 401);
+      }
+
+      const token = createToken({ email: foundUser.email, role: "user", name: foundUser.name });
+      return send({
+        ok: true,
+        user: {
+          id: foundUser.id,
+          email: foundUser.email,
+          displayName: foundUser.name,
+          role: "user",
+          photoURL: foundUser.photoURL || "",
+          token,
+        },
+        token,
+      });
+    }
+
+    // 0.1 Auth Register (POST)
+    if (action === "auth-register" && method === "POST") {
+      const input = await parseBody();
+      const email = cleanText(input?.email, 254).toLowerCase();
+      const password = String(input?.password || "");
+      const name = cleanText(input?.name, 100);
+      const photoURL = cleanText(input?.photoURL, 500);
+
+      if (!email || !password || !name) {
+        return send({ error: "সকল প্রয়োজনীয় তথ্য পূরণ করুন।" }, 400);
+      }
+
+      if (email === ADMIN_EMAIL.toLowerCase()) {
+        return send({ error: "অ্যাডমিন অ্যাকাউন্টে সরাসরি লগইন করুন।" }, 400);
+      }
+
+      let usersList = [];
+      if (useSupabase) {
+        usersList = (await dbGetSetting("registered_users")) || [];
+      }
+      if (usersList.some((u) => u.email?.toLowerCase() === email)) {
+        return send({ error: "এই ইমেইলে ইতিমধ্যে একটি অ্যাকাউন্ট রয়েছে।" }, 409);
+      }
+
+      const hash = crypto.createHash("sha256").update(password).digest("hex");
+      const newUser = {
+        id: `usr-${Date.now()}`,
+        email,
+        name,
+        passwordHash: hash,
+        photoURL: photoURL || "",
+        createdAt: new Date().toISOString(),
+      };
+
+      usersList.push(newUser);
+      if (useSupabase) {
+        await dbSetSetting("registered_users", usersList);
+      }
+
+      const token = createToken({ email: newUser.email, role: "user", name: newUser.name });
+      return send({
+        ok: true,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          displayName: newUser.name,
+          role: "user",
+          photoURL: newUser.photoURL,
+          token,
+        },
+        token,
+      });
+    }
+
+    // 0.2 Auth Set Password (POST)
+    if (action === "auth-set-password" && method === "POST") {
+      const input = await parseBody();
+      const email = cleanText(input?.email || ADMIN_EMAIL, 254).toLowerCase();
+      const password = String(input?.password || "");
+
+      if (!password || password.length < 8) {
+        return send({ error: "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।" }, 400);
+      }
+
+      const hash = crypto.createHash("sha256").update(password).digest("hex");
+
+      if (email === ADMIN_EMAIL.toLowerCase()) {
+        if (useSupabase) {
+          await dbSetSetting("admin_auth", {
+            email: ADMIN_EMAIL,
+            passwordHash: hash,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+        return send({ ok: true, message: "অ্যাডমিন পাসওয়ার্ড সফলভাবে সংরক্ষিত হয়েছে।" });
+      }
+
+      let usersList = [];
+      if (useSupabase) {
+        usersList = (await dbGetSetting("registered_users")) || [];
+      }
+      const idx = usersList.findIndex((u) => u.email?.toLowerCase() === email);
+      if (idx !== -1) {
+        usersList[idx].passwordHash = hash;
+        if (useSupabase) {
+          await dbSetSetting("registered_users", usersList);
+        }
+        return send({ ok: true, message: "পাসওয়ার্ড সফলভাবে হালনাগাদ করা হয়েছে।" });
+      }
+
+      return send({ error: "ব্যবহারকারী পাওয়া যায়নি।" }, 404);
+    }
+
     // 1. Public Settings (GET)
     if (action === "public-settings" && method === "GET") {
       let data = null;
