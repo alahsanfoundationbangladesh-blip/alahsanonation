@@ -430,11 +430,14 @@ export async function handleApiRequest(req, res, context) {
       if (useSupabase) {
         data = await dbGetSetting("settings");
       }
-      if (!data && memoryContent.has("settings")) {
+      if (!useSupabase && memoryContent.has("settings")) {
         data = memoryContent.get("settings");
       }
       return send(data, 200, {
-        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+        // Admin edits must be visible immediately across browsers and deployments.
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
       });
     }
 
@@ -444,11 +447,14 @@ export async function handleApiRequest(req, res, context) {
       if (useSupabase) {
         data = await dbGetSetting("campaigns");
       }
-      if (!data && memoryContent.has("campaigns")) {
+      if (!useSupabase && memoryContent.has("campaigns")) {
         data = memoryContent.get("campaigns");
       }
       return send(data, 200, {
-        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+        // Admin edits must be visible immediately across browsers and deployments.
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
       });
     }
 
@@ -1018,7 +1024,10 @@ export async function handleApiRequest(req, res, context) {
           };
 
           if (useSupabase) {
-            await dbSetSetting("settings", settings);
+            const persisted = await dbSetSetting("settings", settings);
+            if (!persisted) {
+              return send({ error: "Supabase-এ স্থায়ীভাবে সংরক্ষণ করা যায়নি। সংযোগ ও ডাটাবেজ অনুমতি যাচাই করুন।" }, 503);
+            }
           }
           memoryContent.set("settings", settings);
           return send({ success: true, value: settings, persistence: useSupabase ? "database" : "temporary" });
@@ -1061,7 +1070,10 @@ export async function handleApiRequest(req, res, context) {
           });
 
           if (useSupabase) {
-            await dbSetSetting("campaigns", campaigns);
+            const persisted = await dbSetSetting("campaigns", campaigns);
+            if (!persisted) {
+              return send({ error: "Supabase-এ স্থায়ীভাবে সংরক্ষণ করা যায়নি। সংযোগ ও ডাটাবেজ অনুমতি যাচাই করুন।" }, 503);
+            }
           }
           memoryContent.set("campaigns", campaigns);
           return send({ success: true, campaigns, persistence: useSupabase ? "database" : "temporary" });
