@@ -106,11 +106,28 @@ async function verifyAdmin(authHeader, adminEmailHeader, clientUser) {
   return { ok: false, error: "অ্যাডমিন অনুমতি নেই। সঠিক অ্যাকাউন্টে লগইন করুন।" };
 }
 
-async function sendReceiptEmail(donation, attemptKey = "initial") {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL;
+async function getEmailConfig(useSupabase) {
+  let apiKey = process.env.RESEND_API_KEY || "";
+  let from = process.env.RESEND_FROM_EMAIL || "";
+
+  // Dynamic admin configuration stored in Supabase site_settings
+  if ((!apiKey || !from) && useSupabase) {
+    try {
+      const emailConfig = await dbGetSetting("email_config");
+      if (emailConfig && typeof emailConfig === "object") {
+        if (!apiKey && emailConfig.resendApiKey) apiKey = emailConfig.resendApiKey;
+        if (!from && emailConfig.resendFromEmail) from = emailConfig.resendFromEmail;
+      }
+    } catch { /* ignore */ }
+  }
+  return { apiKey: apiKey.trim(), from: from.trim() };
+}
+
+async function sendReceiptEmail(donation, attemptKey = "initial", config = null) {
+  const apiKey = config?.apiKey || process.env.RESEND_API_KEY;
+  const from = config?.from || process.env.RESEND_FROM_EMAIL;
   if (!apiKey || !from) {
-    throw new Error("ইমেইল পাঠানোর সেটআপ সম্পূর্ণ নয়। Vercel/হোস্টিং সেটিংসে RESEND_API_KEY ও RESEND_FROM_EMAIL সেট করতে হবে।");
+    throw new Error("ইমেইল পাঠানোর সেটিংস কনফিগার করা নেই। অ্যাডমিন প্যানেলে অথবা Vercel-এ Resend API Key ও From Email যুক্ত করুন।");
   }
   const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
@@ -531,12 +548,18 @@ export async function handleApiRequest(req, res, context) {
         campaigns = memoryContent.get("campaigns") || null;
       }
 
+      const emailCfg = await getEmailConfig(useSupabase);
+      const isEmailConfigured = Boolean(emailCfg.apiKey && emailCfg.from);
+
       return send({
         donations: donations.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || ""))),
         expenses: expenses.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || ""))),
         settings,
         campaigns,
         database: useSupabase ? "supabase" : "memory_fallback",
+        emailConfigured: isEmailConfigured,
+        emailSender: emailCfg.from || null,
+        emailConfigSource: process.env.RESEND_API_KEY ? "environment" : (emailCfg.apiKey ? "database" : "none"),
       });
     }
 
@@ -569,9 +592,10 @@ export async function handleApiRequest(req, res, context) {
         let emailError = null;
         let emailId = null;
 
-        if (process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL) {
+        const emailCfg = await getEmailConfig(useSupabase);
+        if (emailCfg.apiKey && emailCfg.from) {
           try {
-            const receipt = await sendReceiptEmail(donation, "approval");
+            const receipt = await sendReceiptEmail(donation, "approval", emailCfg);
             emailStatus = "sent";
             emailId = receipt.emailId;
           } catch (err) {
@@ -580,7 +604,7 @@ export async function handleApiRequest(req, res, context) {
           }
         } else {
           emailStatus = "failed";
-          emailError = "Vercel বা সার্ভারে RESEND_API_KEY ও RESEND_FROM_EMAIL সেট করা নেই।";
+          emailError = "ইমেইল সার্ভিস কনফিগার করা নেই (Resend API Key ও From Email প্রয়োজন)।";
         }
 
         const updated = {
@@ -636,10 +660,11 @@ export async function handleApiRequest(req, res, context) {
         const toSend = { ...donation, email: targetEmail };
 
         try {
-          if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL) {
-            throw new Error("সার্ভারে ইমেইল পাঠানোর সেটিংস নেই।");
+          const emailCfg = await getEmailConfig(useSupabase);
+          if (!emailCfg.apiKey || !emailCfg.from) {
+            throw new Error("ইমেইল সার্ভিস কনফিগার করা নেই। অ্যাডমিন প্যানেল বা Vercel-এ Resend API Key ও From Email যুক্ত করুন।");
           }
-          const receipt = await sendReceiptEmail(toSend, attemptId);
+          const receipt = await sendReceiptEmail(toSend, attemptId, emailCfg);
           const updated = {
             ...donation,
             emailStatus: "sent",
@@ -728,6 +753,38 @@ export async function handleApiRequest(req, res, context) {
         }
 
         return send({ success: true, expense: record }, 201);
+      }
+
+      // 5.4 Save Email Configuration (stored securely in Supabase site_settings)
+      if (input.action === "save-email-config") {
+        const rawApiKey = typeof input.apiKey === "string" ? input.apiKey.trim() : "";
+        const rawFromEmail = typeof input.fromEmail === "string" ? input.fromEmail.trim().toLowerCase() : "";
+
+        if (rawApiKey && !/^re_[a-zA-Z0-9_]+$/.test(rawApiKey)) {
+          return send({ error: "Resend API Key-এর ফরম্যাট সঠিক নয় (re_ দিয়ে শুরু হতে হবে)।" }, 400);
+        }
+        if (rawFromEmail && !rawFromEmail.includes("@")) {
+          return send({ error: "সঠিক প্রেরক ইমেইল (From Email) লিখুন।" }, 400);
+        }
+
+        const emailConfig = {
+          resendApiKey: rawApiKey,
+          resendFromEmail: rawFromEmail,
+          updatedAt: new Date().toISOString(),
+          updatedBy: auth.email,
+        };
+
+        if (useSupabase) {
+          await dbSetSetting("email_config", emailConfig);
+        }
+        memoryContent.set("email_config", emailConfig);
+
+        return send({
+          success: true,
+          message: "ইমেইল সেটিংস সফলভাবে সংরক্ষণ করা হয়েছে।",
+          emailConfigured: Boolean(rawApiKey && rawFromEmail),
+          emailSender: rawFromEmail || null,
+        });
       }
 
       // 5.5 Save Content (Settings / Campaigns)
