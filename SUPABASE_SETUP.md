@@ -74,3 +74,35 @@ npm run dev
 - **ডুপ্লিকেট TrxID রোধ:** অনুদান জমা দেওয়ার সময় Supabase ডেটাবেসে TrxID যাচাই করা হয়, ফলে একই ট্রানজ্যাকশন আইডি দিয়ে একাধিকবার ভুয়া অনুদান জমা দেওয়া অসম্ভব।
 - **রসিদ ট্র্যাকিং:** প্রতিটি অনুমোদিত অনুদানের জন্য ইউনিক চালান নম্বর (`AHF-...`) তৈরি হয় এবং ইমেইল ডেলিভারির পূর্ণ লগ ডেটাবেসে সংরক্ষিত থাকে।
 - **ব্যাকওয়ার্ড কমপ্যাটিবিলিটি:** প্রজেক্টটিতে Vercel-এর সাথে সাথে Netlify-এর ফাংশন ও রিডাইরেক্ট কনফিগারেশনও বহাল রাখা হয়েছে, ফলে উভয় প্ল্যাটফর্মেই এটি সমানভাবে কাজ করবে।
+
+
+---
+
+## ⚠️ "permission denied for table site_settings" এরর সমাধান
+
+যদি Vercel লগে `permission denied for table site_settings` দেখতে পান, তবে Supabase SQL Editor-এ গিয়ে নিচের কুয়েরিটি রান করুন:
+
+```sql
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
+
+ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all for site_settings" ON public.site_settings;
+CREATE POLICY "Allow all for site_settings" ON public.site_settings FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.donations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all for donations" ON public.donations;
+CREATE POLICY "Allow all for donations" ON public.donations FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all for expenses" ON public.expenses;
+CREATE POLICY "Allow all for expenses" ON public.expenses FOR ALL USING (true) WITH CHECK (true);
+```
+
+এছাড়াও Vercel Environment Variables-এ `SUPABASE_SERVICE_ROLE_KEY`-তে Supabase-এর `service_role` (secret) কী দেওয়া হয়েছে কি না নিশ্চিত করুন।
