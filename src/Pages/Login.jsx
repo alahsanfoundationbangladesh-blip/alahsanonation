@@ -4,36 +4,47 @@ import toast from "react-hot-toast";
 import { FaEyeSlash } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AuthContext, authErrorMessage } from "../context/AuthProvider";
+import { AuthContext, authErrorMessage, isAdminEmail } from "../context/AuthProvider";
 import { useBranding } from "../context/BrandingContext";
+import GoogleAuthModal from "../components/GoogleAuthModal";
 
 const Login = () => {
-  const { loginUser, googleLogin } = useContext(AuthContext);
+  const { loginUser } = useContext(AuthContext);
   const { settings } = useBranding();
   const [type, setType] = useState("password");
   const [email, setEmail] = useState("");
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handelGoogle = () => {
-    try {
-      googleLogin();
-    } catch (error) {
-      toast.error(authErrorMessage(error));
+  const handelGoogle = (e) => {
+    e.preventDefault();
+    setIsGoogleModalOpen(true);
+  };
+
+  const handleGoogleSuccess = (account) => {
+    if (isAdminEmail(account?.email)) {
+      navigate("/admin");
+    } else {
+      navigate(location?.state?.from || "/");
     }
   };
 
   const handelSubmit = (e) => {
     e.preventDefault();
     const form = new FormData(e.target);
-    const email = form.get("email");
+    const emailVal = form.get("email");
     const password = form.get("password");
 
-    loginUser(email, password)
-      .then(() => {
+    loginUser(emailVal, password)
+      .then((res) => {
         toast.success("সফলভাবে লগইন হয়েছে।");
         e.target.reset();
-        navigate(location?.state?.from || "/");
+        if (isAdminEmail(res?.user?.email) || res?.user?.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate(location?.state?.from || "/");
+        }
       })
       .catch((error) => {
         toast.error(authErrorMessage(error));
@@ -59,7 +70,7 @@ const Login = () => {
             <div>
               <a
                 onClick={handelGoogle}
-                className="flex items-center justify-center mt-4 text-white rounded-lg shadow-md hover:bg-gray-100"
+                className="flex items-center justify-center mt-4 text-white rounded-lg shadow-md hover:bg-gray-100 cursor-pointer"
               >
                 <div className="px-4 py-3">
                   <svg className="h-6 w-6" viewBox="0 0 40 40">
@@ -209,6 +220,11 @@ const Login = () => {
           </div>
         </div>
       </div>
+      <GoogleAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onSuccess={handleGoogleSuccess}
+      />
     </div>
   );
 };

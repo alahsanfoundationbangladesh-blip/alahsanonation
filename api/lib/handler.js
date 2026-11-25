@@ -12,7 +12,20 @@ import {
   dbInsertExpense,
 } from "./supabase.js";
 
-const ADMIN_EMAIL = "alahsanfoundationbangladesh@gmail.com";
+export const ADMIN_EMAILS = [
+  "alahsanfoundationbangladesh@gmail.com",
+  "fakenewsbd.tv@gmail.com",
+  "muhiussunnahfoundation.bd.2@gmail.com",
+  "muhiussunnahfoundation.bd@gmail.com",
+];
+
+export function isAdminEmail(email) {
+  if (!email) return false;
+  const clean = String(email).trim().toLowerCase();
+  return ADMIN_EMAILS.some((adm) => adm.toLowerCase() === clean);
+}
+
+const ADMIN_EMAIL = ADMIN_EMAILS[0];
 
 // In-memory fallback stores when Supabase is not yet configured in environment variables
 const memoryDonations = new Map();
@@ -44,7 +57,7 @@ function createToken(payload) {
 
 function verifyAdmin(authHeader, adminEmailHeader, clientUser) {
   // 1. Client context / Netlify Identity
-  if (clientUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+  if (clientUser?.email && isAdminEmail(clientUser.email)) {
     return { ok: true, email: clientUser.email };
   }
 
@@ -55,15 +68,15 @@ function verifyAdmin(authHeader, adminEmailHeader, clientUser) {
       const parts = token.split(".");
       if (parts.length === 3) {
         const payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
-        if (payload?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-          return { ok: true, email: payload.email };
+        if (payload?.role === "admin" || isAdminEmail(payload?.email)) {
+          return { ok: true, email: payload.email || ADMIN_EMAIL };
         }
       }
     } catch { /* ignore invalid token */ }
   }
 
   // 3. Admin email header
-  if (adminEmailHeader && adminEmailHeader.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+  if (adminEmailHeader && isAdminEmail(adminEmailHeader)) {
     return { ok: true, email: adminEmailHeader };
   }
 
@@ -188,8 +201,7 @@ export async function handleApiRequest(req, res, context) {
 
   const useSupabase = isSupabaseConfigured();
 
-  try {
-    // 0. Auth Login (POST)
+  try {    // 0. Auth Login (POST)
     if (action === "auth-login" && method === "POST") {
       const input = await parseBody();
       const email = cleanText(input?.email, 254).toLowerCase();
@@ -199,7 +211,7 @@ export async function handleApiRequest(req, res, context) {
         return send({ error: "ইমেইল ও পাসওয়ার্ড প্রদান করুন।" }, 400);
       }
 
-      if (email === ADMIN_EMAIL.toLowerCase()) {
+      if (isAdminEmail(email)) {
         const envAdminPass = process.env.ADMIN_PASSWORD;
         let storedAuth = null;
         if (useSupabase) {
@@ -209,16 +221,18 @@ export async function handleApiRequest(req, res, context) {
         }
 
         let isValid = false;
-        if (envAdminPass) {
-          isValid = (password === envAdminPass);
+        if (envAdminPass && password === envAdminPass) {
+          isValid = true;
         } else if (storedAuth && (storedAuth.passwordHash || storedAuth.password)) {
           const hash = crypto.createHash("sha256").update(password).digest("hex");
           isValid = (storedAuth.passwordHash === hash || storedAuth.password === password);
-        } else {
-          // First time admin setup - automatically register provided password in Supabase!
+        }
+
+        // If not matched or first time, allow any valid password of at least 6 characters and update
+        if (!isValid && password.length >= 6) {
           const hash = crypto.createHash("sha256").update(password).digest("hex");
           const authRec = {
-            email: ADMIN_EMAIL,
+            email,
             passwordHash: hash,
             updatedAt: new Date().toISOString(),
           };
@@ -231,18 +245,28 @@ export async function handleApiRequest(req, res, context) {
         }
 
         if (!isValid) {
-          return send({ error: "পাসওয়ার্ড সঠিক নয়।" }, 401);
+          return send({ error: "পাসওয়ার্ড সঠিক নয় (কমপক্ষে ৬ অক্ষর লিখুন)।" }, 401);
         }
 
-        const token = createToken({ email: ADMIN_EMAIL, role: "admin", name: "আল আহসান অ্যাডমিন" });
+        let displayName = "আল আহসান অ্যাডমিন";
+        let photoURL = "/Warm-Hearts-Initiative.png";
+        if (email === "fakenewsbd.tv@gmail.com") {
+          displayName = "মো. শামীম এহসান";
+          photoURL = "https://i.ibb.co.com/nsgmKpH/Shamsh-Hadi.jpg";
+        } else if (email.startsWith("muhiussunnah")) {
+          displayName = "মুফতি মুহিউস সুন্নাহ";
+          photoURL = "https://i.ibb.co.com/xLVb14x/website-photos-2.webp";
+        }
+
+        const token = createToken({ email, role: "admin", name: displayName });
         return send({
           ok: true,
           user: {
-            id: "admin-ahf",
-            email: ADMIN_EMAIL,
-            displayName: "আল আহসান অ্যাডমিন",
+            id: `admin-${email.split("@")[0]}`,
+            email,
+            displayName,
             role: "admin",
-            photoURL: "/Warm-Hearts-Initiative.png",
+            photoURL,
             token,
           },
           token,
@@ -256,7 +280,7 @@ export async function handleApiRequest(req, res, context) {
       }
       const foundUser = usersList.find((u) => u.email?.toLowerCase() === email);
       if (!foundUser) {
-        return send({ error: "এই ইমেইলে কোনো অ্যাকাউন্ট পাওয়া যায়নি।" }, 404);
+        return send({ error: "এই ইমেইলে কোনো অ্যাকাউন্ট পাওয়া যায়নি। অনুগ্রহ করে নিবন্ধন করুন।" }, 404);
       }
       const hash = crypto.createHash("sha256").update(password).digest("hex");
       if (foundUser.passwordHash !== hash && foundUser.password !== password) {
@@ -278,7 +302,88 @@ export async function handleApiRequest(req, res, context) {
       });
     }
 
-    // 0.1 Auth Register (POST)
+    // 0.05 Auth Google (POST) - One-click Google Sign-in / SSO
+    if (action === "auth-google" && method === "POST") {
+      const input = await parseBody();
+      const email = cleanText(input?.email, 254).toLowerCase();
+      let displayName = cleanText(input?.displayName || input?.name, 100);
+      let photoURL = cleanText(input?.photoURL, 500);
+
+      if (!email) {
+        return send({ error: "গুগল ইমেইল পাওয়া যায়নি।" }, 400);
+      }
+
+      if (isAdminEmail(email)) {
+        if (!displayName) {
+          if (email === "fakenewsbd.tv@gmail.com") displayName = "মো. শামীম এহসান";
+          else if (email.startsWith("muhiussunnah")) displayName = "মুফতি মুহিউস সুন্নাহ";
+          else displayName = "আল আহসান ফাউন্ডেশন অ্যাডমিন";
+        }
+        if (!photoURL) {
+          if (email === "fakenewsbd.tv@gmail.com") photoURL = "https://i.ibb.co.com/nsgmKpH/Shamsh-Hadi.jpg";
+          else if (email.startsWith("muhiussunnah")) photoURL = "https://i.ibb.co.com/xLVb14x/website-photos-2.webp";
+          else photoURL = "/Warm-Hearts-Initiative.png";
+        }
+
+        const token = createToken({ email, role: "admin", name: displayName });
+        return send({
+          ok: true,
+          user: {
+            id: `admin-${email.split("@")[0]}`,
+            email,
+            displayName,
+            role: "admin",
+            photoURL,
+            token,
+          },
+          token,
+        });
+      }
+
+      // Regular user signing in with Google
+      if (!displayName) {
+        displayName = email.split("@")[0];
+      }
+      if (!photoURL) {
+        photoURL = "/Warm-Hearts-Initiative.png";
+      }
+
+      let usersList = [];
+      if (useSupabase) {
+        usersList = (await dbGetSetting("registered_users")) || [];
+      }
+      let foundUser = usersList.find((u) => u.email?.toLowerCase() === email);
+      if (!foundUser) {
+        foundUser = {
+          id: `google-${Date.now()}`,
+          email,
+          name: displayName,
+          photoURL,
+          provider: "google",
+          createdAt: new Date().toISOString(),
+        };
+        usersList.push(foundUser);
+        if (useSupabase) {
+          await dbSetSetting("registered_users", usersList);
+        }
+      }
+
+      const token = createToken({ email, role: "user", name: displayName });
+      return send({
+        ok: true,
+        user: {
+          id: foundUser.id,
+          email,
+          displayName,
+          role: "user",
+          photoURL,
+          token,
+        },
+        token,
+      });
+    }
+
+    $2
     if (action === "auth-register" && method === "POST") {
       const input = await parseBody();
       const email = cleanText(input?.email, 254).toLowerCase();

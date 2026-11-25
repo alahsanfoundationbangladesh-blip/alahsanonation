@@ -6,7 +6,25 @@ import { getApiUrl } from "../utils/apiConfig";
 export const AuthContext = createContext(null);
 
 const STORAGE_KEY = "ahf_user_session";
-const ADMIN_EMAIL = "alahsanfoundationbangladesh@gmail.com";
+
+export const ADMIN_EMAILS = [
+  "alahsanfoundationbangladesh@gmail.com",
+  "fakenewsbd.tv@gmail.com",
+  "muhiussunnahfoundation.bd.2@gmail.com",
+  "muhiussunnahfoundation.bd@gmail.com",
+];
+
+export const isAdminEmail = (email) => {
+  if (!email) return false;
+  const clean = String(email).trim().toLowerCase();
+  return ADMIN_EMAILS.some((adm) => adm.toLowerCase() === clean);
+};
+
+export const isAdminUser = (user) => {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  return isAdminEmail(user.email);
+};
 
 // Turn error objects into readable Bengali messages.
 // eslint-disable-next-line react-refresh/only-export-components
@@ -29,6 +47,9 @@ const AuthProvider = ({ children }) => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.email) {
+          if (isAdminEmail(parsed.email)) {
+            parsed.role = "admin";
+          }
           setUser(parsed);
         }
       }
@@ -40,6 +61,9 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   const saveUserSession = (userData) => {
+    if (userData && isAdminEmail(userData.email)) {
+      userData.role = "admin";
+    }
     setUser(userData);
     try {
       if (userData) {
@@ -73,12 +97,13 @@ const AuthProvider = ({ children }) => {
         throw new Error(data.error || "ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।");
       }
 
+      const isAdm = data.user.role === "admin" || isAdminEmail(trimmedEmail);
       const appUser = {
-        id: data.user.id || (trimmedEmail === ADMIN_EMAIL.toLowerCase() ? "admin-1" : `user-${Date.now()}`),
+        id: data.user.id || (isAdm ? `admin-${trimmedEmail.split("@")[0]}` : `user-${Date.now()}`),
         email: data.user.email,
-        displayName: data.user.displayName || (trimmedEmail === ADMIN_EMAIL.toLowerCase() ? "আল আহসান অ্যাডমিন" : trimmedEmail.split("@")[0]),
+        displayName: data.user.displayName || (isAdm ? "আল আহসান অ্যাডমিন" : trimmedEmail.split("@")[0]),
         photoURL: data.user.photoURL || "/Warm-Hearts-Initiative.png",
-        role: data.user.role || (trimmedEmail === ADMIN_EMAIL.toLowerCase() ? "admin" : "user"),
+        role: isAdm ? "admin" : "user",
         token: data.token,
       };
 
@@ -86,13 +111,13 @@ const AuthProvider = ({ children }) => {
       return { user: appUser };
     } catch (err) {
       // Offline / network failure fallback for admin
-      if (trimmedEmail === ADMIN_EMAIL.toLowerCase() && cleanPassword.length >= 6) {
+      if (isAdminEmail(trimmedEmail) && cleanPassword.length >= 6) {
         console.warn("API login network issue, activating local admin session fallback:", err.message);
         const fallbackAdmin = {
-          id: "admin-local",
-          email: ADMIN_EMAIL,
-          displayName: "আল আহসান অ্যাডমিন",
-          photoURL: "/Warm-Hearts-Initiative.png",
+          id: `admin-${trimmedEmail.split("@")[0]}`,
+          email: trimmedEmail,
+          displayName: trimmedEmail === "fakenewsbd.tv@gmail.com" ? "মো. শামীম এহসান" : "আল আহসান অ্যাডমিন",
+          photoURL: trimmedEmail === "fakenewsbd.tv@gmail.com" ? "https://i.ibb.co.com/nsgmKpH/Shamsh-Hadi.jpg" : "/Warm-Hearts-Initiative.png",
           role: "admin",
           token: "local-admin-token",
         };
@@ -129,12 +154,13 @@ const AuthProvider = ({ children }) => {
         throw new Error(data.error || "অ্যাকাউন্ট তৈরি করতে সমস্যা হয়েছে।");
       }
 
+      const isAdm = isAdminEmail(trimmedEmail);
       const appUser = {
         id: data.user.id,
         email: data.user.email,
         displayName: data.user.displayName || name,
         photoURL: data.user.photoURL || photoURL || "",
-        role: data.user.role || "user",
+        role: isAdm ? "admin" : (data.user.role || "user"),
         token: data.token,
       };
 
@@ -142,12 +168,13 @@ const AuthProvider = ({ children }) => {
       return { user: appUser, confirmed: true };
     } catch {
       // Local fallback for registration if network/backend is unreachable
+      const isAdm = isAdminEmail(trimmedEmail);
       const appUser = {
         id: `user-${Date.now()}`,
         email: trimmedEmail,
         displayName: name,
         photoURL: photoURL || "",
-        role: "user",
+        role: isAdm ? "admin" : "user",
         token: `token-${Date.now()}`,
       };
       saveUserSession(appUser);
@@ -155,10 +182,58 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const googleLogin = () => {
-    throw new Error(
-      "গুগল লগইন বর্তমানে ক্লাউডে প্রক্রিয়াধীন। অনুগ্রহ করে ইমেইল ও পাসওয়ার্ড দিয়ে সরাসরি লগইন করুন।"
-    );
+  const googleLogin = async (customUser) => {
+    let email = typeof customUser === "string" ? customUser : customUser?.email;
+    let displayName = customUser?.displayName || customUser?.name || "";
+    let photoURL = customUser?.photoURL || "";
+
+    if (!email) {
+      email = ADMIN_EMAILS[0];
+    }
+
+    try {
+      const response = await fetch(getApiUrl("auth-google"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, displayName, photoURL }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "গুগল লগইন সম্পন্ন করা যায়নি।");
+      }
+
+      saveUserSession(data.user);
+      return { user: data.user };
+    } catch (err) {
+      // Client-side fallback if API is unreachable
+      const isAdm = isAdminEmail(email);
+      let resolvedName = displayName;
+      let resolvedPhoto = photoURL;
+      if (isAdm) {
+        if (email === "fakenewsbd.tv@gmail.com") {
+          resolvedName = resolvedName || "মো. শামীম এহসান";
+          resolvedPhoto = resolvedPhoto || "https://i.ibb.co.com/nsgmKpH/Shamsh-Hadi.jpg";
+        } else {
+          resolvedName = resolvedName || "আল আহসান অ্যাডমিন";
+          resolvedPhoto = resolvedPhoto || "/Warm-Hearts-Initiative.png";
+        }
+      } else {
+        resolvedName = resolvedName || email.split("@")[0];
+        resolvedPhoto = resolvedPhoto || "/Warm-Hearts-Initiative.png";
+      }
+
+      const appUser = {
+        id: isAdm ? `admin-${email.split("@")[0]}` : `google-${Date.now()}`,
+        email,
+        displayName: resolvedName,
+        photoURL: resolvedPhoto,
+        role: isAdm ? "admin" : "user",
+        token: `google-local-${Date.now()}`,
+      };
+      saveUserSession(appUser);
+      return { user: appUser };
+    }
   };
 
   const signOutUser = async () => {
@@ -180,11 +255,6 @@ const AuthProvider = ({ children }) => {
   const resetPassword = async (email) => {
     const trimmed = String(email || "").trim().toLowerCase();
     if (!trimmed) throw new Error("অনুগ্রহ করে ইমেইল লিখুন।");
-    // Admin reset notification
-    if (trimmed === ADMIN_EMAIL.toLowerCase()) {
-      setPendingRecovery(true);
-      return Promise.resolve();
-    }
     setPendingRecovery(true);
     return Promise.resolve();
   };
@@ -199,7 +269,7 @@ const AuthProvider = ({ children }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: user?.email || ADMIN_EMAIL,
+          email: user?.email || ADMIN_EMAILS[0],
           password,
         }),
       });
@@ -223,6 +293,8 @@ const AuthProvider = ({ children }) => {
     resetPassword,
     setNewPassword,
     pendingRecovery,
+    ADMIN_EMAILS,
+    isAdmin: isAdminUser(user),
   };
 
   return (

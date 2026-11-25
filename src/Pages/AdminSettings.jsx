@@ -116,10 +116,15 @@ const AdminSettings = () => {
         if (rawExpenses) currentLocalExpenses = JSON.parse(rawExpenses);
       } catch { /* ignore */ }
 
+      const authHeaders = {
+        "x-admin-email": user?.email || "alahsanfoundationbangladesh@gmail.com",
+      };
+      if (user?.token) {
+        authHeaders["Authorization"] = `Bearer ${user.token}`;
+      }
+
       const response = await fetch(`${API}?action=admin-data`, {
-        headers: {
-          "x-admin-email": "alahsanfoundationbangladesh@gmail.com",
-        },
+        headers: authHeaders,
       });
 
       if (response.ok) {
@@ -175,12 +180,16 @@ const AdminSettings = () => {
   }, [donations, expenses]);
 
   const postAdmin = async (payload) => {
+    const headers = {
+      "Content-Type": "application/json",
+      "x-admin-email": user?.email || "alahsanfoundationbangladesh@gmail.com",
+    };
+    if (user?.token) {
+      headers["Authorization"] = `Bearer ${user.token}`;
+    }
     const response = await fetch(`${API}?action=admin`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-admin-email": "alahsanfoundationbangladesh@gmail.com",
-      },
+      headers,
       body: JSON.stringify(payload),
     });
     const data = await response.json().catch(() => ({}));

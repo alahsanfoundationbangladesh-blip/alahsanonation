@@ -4,7 +4,8 @@ import toast from "react-hot-toast";
 import { FaEyeSlash } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AuthContext, authErrorMessage } from "./../context/AuthProvider";
+import { AuthContext, authErrorMessage, isAdminEmail } from "./../context/AuthProvider";
+import GoogleAuthModal from "../components/GoogleAuthModal";
 import { useBranding } from "../context/BrandingContext";
 
 const Register = () => {
@@ -12,6 +13,7 @@ const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [type, setType] = useState("password");
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const { createUser, googleLogin } = useContext(AuthContext);
   const { settings } = useBranding();
 
@@ -35,11 +37,16 @@ const Register = () => {
     });
   };
 
-  const handelGoogle = () => {
-    try {
-      googleLogin();
-    } catch (error) {
-      toast.error(authErrorMessage(error));
+  const handelGoogle = (e) => {
+    e.preventDefault();
+    setIsGoogleModalOpen(true);
+  };
+
+  const handleGoogleSuccess = (account) => {
+    if (isAdminEmail(account?.email)) {
+      navigate("/admin");
+    } else {
+      navigate(location?.state?.from || "/");
     }
   };
 
@@ -99,7 +106,7 @@ const Register = () => {
             <div>
               <a
                 onClick={handelGoogle}
-                className="flex items-center justify-center mt-4 text-white rounded-lg shadow-md hover:bg-gray-100"
+                className="flex items-center justify-center mt-4 text-white rounded-lg shadow-md hover:bg-gray-100 cursor-pointer"
               >
                 <div className="px-4 py-3">
                   <svg className="h-6 w-6" viewBox="0 0 40 40">
@@ -293,6 +300,11 @@ const Register = () => {
           </div>
         </div>
       </div>
+      <GoogleAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onSuccess={handleGoogleSuccess}
+      />
     </div>
   );
 };

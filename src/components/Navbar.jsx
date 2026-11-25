@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 
 import { Link, NavLink } from "react-router-dom";
-import { AuthContext } from "../context/AuthProvider";
+import { AuthContext, isAdminUser } from "../context/AuthProvider";
 import { useBranding } from "../context/BrandingContext";
 
 const Navbar = () => {
@@ -130,7 +130,7 @@ const Navbar = () => {
                   <span className="badge bg-green-200 text-green-800">নতুন</span>
                 </Link>
               </li>
-              {user?.email?.toLowerCase() === "alahsanfoundationbangladesh@gmail.com" && <li><Link to="/admin">অ্যাডমিন প্যানেল</Link></li>}
+              {isAdminUser(user) && <li><Link to="/admin">অ্যাডমিন প্যানেল</Link></li>}
               <li><Link to="/dashboard">আমার ড্যাশবোর্ড</Link></li>
               <li>
                 <button onClick={signOutUser} className="text-red-600">
