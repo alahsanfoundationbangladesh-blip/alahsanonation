@@ -33,6 +33,21 @@ const CampaignDetails = () => {
     });
   };
 
+  if (!campaign) {
+    return (
+      <div className="w-11/12 mx-auto py-16 text-center">
+        <Helmet>
+          <title>কার্যক্রম পাওয়া যায়নি - {settings.siteName}</title>
+        </Helmet>
+        <h2 className="text-2xl font-bold text-gray-800">কার্যক্রমের তথ্য পাওয়া যায়নি</h2>
+        <p className="text-gray-600 mt-2">হয়তো কার্যক্রমটি স্থানান্তরিত হয়েছে অথবা মুছে ফেলা হয়েছে।</p>
+        <Link to="/campaigns" className="mt-6 inline-flex rounded-xl bg-primary px-6 py-3 font-semibold text-white">
+          সকল কার্যক্রম দেখুন
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="w-11/12 mx-auto pt-5 block lg:grid lg:grid-cols-12 gap-5">
       <Helmet>

@@ -53,11 +53,17 @@ const Campaigns = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCampaigns.map((campaign, index) => (
-            <Campaign campaign={campaign} key={campaign.id || index} index={index} />
-          ))}
-        </div>
+        {filteredCampaigns.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCampaigns.map((campaign, index) => (
+              <Campaign campaign={campaign} key={campaign.id || index} index={index} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-lg">এই বিভাগে বর্তমানে কোনো অনুদান কার্যক্রম পাওয়া যায়নি।</p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -139,24 +139,24 @@ async function sendReceiptEmail(donation, attemptKey = "initial") {
 export async function handleApiRequest(req, res, context) {
   const isNode = Boolean(res && typeof res.status === "function");
 
-  const send = (body, status = 200) => {
+  const send = (body, status = 200, customHeaders = {}) => {
+    const defaultHeaders = {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, x-admin-email",
+      ...customHeaders,
+    };
     if (isNode) {
-      res.setHeader("Content-Type", "application/json; charset=utf-8");
-      res.setHeader("Cache-Control", "no-store");
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-admin-email");
+      for (const [key, val] of Object.entries(defaultHeaders)) {
+        res.setHeader(key, val);
+      }
       return res.status(status).json(body);
     }
     return new Response(JSON.stringify(body), {
       status,
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Cache-Control": "no-store",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, x-admin-email",
-      },
+      headers: defaultHeaders,
     });
   };
 
@@ -416,7 +416,9 @@ export async function handleApiRequest(req, res, context) {
       if (!data && memoryContent.has("settings")) {
         data = memoryContent.get("settings");
       }
-      return send(data);
+      return send(data, 200, {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+      });
     }
 
     // 2. Public Campaigns (GET)
@@ -428,7 +430,9 @@ export async function handleApiRequest(req, res, context) {
       if (!data && memoryContent.has("campaigns")) {
         data = memoryContent.get("campaigns");
       }
-      return send(data);
+      return send(data, 200, {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+      });
     }
 
     // 3. Donation Submission (POST)
