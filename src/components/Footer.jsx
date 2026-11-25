@@ -33,6 +33,7 @@ const Footer = () => {
             <li><NavLink to="/how-to-help" className="hover:underline">কীভাবে সহায়তা করবেন</NavLink></li>
             <li><NavLink to="/about" className="hover:underline">আমাদের সম্পর্কে</NavLink></li>
             <li><NavLink to="/contact" className="hover:underline">যোগাযোগ</NavLink></li>
+            <li><NavLink to="/admin" className="hover:underline text-xs opacity-75">অ্যাডমিন প্রবেশ</NavLink></li>
           </ul>
         </div>
 

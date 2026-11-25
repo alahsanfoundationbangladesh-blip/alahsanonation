@@ -59,9 +59,9 @@ const HowItWorks = () => {
         </div>
         <div className="text-center w-full md:w-2/3">
           <img
-            src={how.flowchartImage || "https://i.ibb.co.com/pdMxkdK/a-visually-appealing-flowchart-illustrating-the-st-n-2t-Zgx-NRS2grbs-Tme-Rm-MA-v-BCXOUft-Sk66m4-J9-B.jpg"}
+            src={how.flowchartImage || "/flowchart-bangla.svg"}
             alt="সহায়তা কার্যক্রমের ধাপচিত্র"
-            className="object-cover object-center w-full h-[320px] lg:h-[350px] rounded-lg shadow-sm"
+            className="object-contain object-center w-full h-[320px] lg:h-[350px] rounded-lg shadow-sm bg-white p-2 border border-gray-100"
           />
         </div>
       </div>

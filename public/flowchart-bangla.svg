@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 450" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F0F7FF" />
+      <stop offset="100%" stop-color="#E6F0FA" />
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A90E2" />
+      <stop offset="100%" stop-color="#2C6CB0" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF9933" />
+      <stop offset="100%" stop-color="#E67300" />
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="125%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#1E3A8A" flood-opacity="0.08" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="450" rx="20" fill="url(#bgGrad)" />
+
+  <!-- Title Section -->
+  <text x="450" y="55" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="24" font-weight="bold" fill="#1E293B">
+    সহায়তা কার্যক্রম পরিচালনার ৪টি প্রধান ধাপ
+  </text>
+  <text x="450" y="85" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="14" fill="#64748B">
+    স্বচ্ছতা ও মানবতার মেলবন্ধনে আল আহসান ফাউন্ডেশনের বিতরণ কার্যক্রম
+  </text>
+
+  <!-- Connecting Dashed Flow Line -->
+  <path d="M 160 230 L 740 230" stroke="#CBD5E1" stroke-width="3" stroke-dasharray="6 6" />
+
+  <!-- Step 1 Card -->
+  <g transform="translate(60, 130)">
+    <rect width="170" height="240" rx="16" fill="#FFFFFF" filter="url(#cardShadow)" stroke="#E2E8F0" stroke-width="1.5" />
+    <!-- Number Badge -->
+    <circle cx="85" cy="45" r="28" fill="url(#primaryGrad)" />
+    <text x="85" y="53" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF">১</text>
+    <!-- Title -->
+    <text x="85" y="110" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="16" font-weight="bold" fill="#0F172A">অনুদান সংগ্রহ</text>
+    <!-- Subtitle/Bullets -->
+    <text x="85" y="145" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">অনলাইন ও ব্যাংকিং</text>
+    <text x="85" y="170" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">সরাসরি শীতবস্ত্র গ্রহণ</text>
+    <text x="85" y="195" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">স্বেচ্ছাসেবী টিম গঠন</text>
+    <!-- Tag -->
+    <rect x="25" y="215" width="120" height="6" rx="3" fill="#4A90E2" />
+  </g>
+
+  <!-- Arrow 1 to 2 -->
+  <g transform="translate(245, 220)">
+    <circle cx="10" cy="10" r="14" fill="#4A90E2" />
+    <polygon points="8,4 16,10 8,16" fill="#FFFFFF" />
+  </g>
+
+  <!-- Step 2 Card -->
+  <g transform="translate(275, 130)">
+    <rect width="170" height="240" rx="16" fill="#FFFFFF" filter="url(#cardShadow)" stroke="#E2E8F0" stroke-width="1.5" />
+    <!-- Number Badge -->
+    <circle cx="85" cy="45" r="28" fill="url(#primaryGrad)" />
+    <text x="85" y="53" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF">২</text>
+    <!-- Title -->
+    <text x="85" y="110" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="16" font-weight="bold" fill="#0F172A">বাছাই ও প্রস্তুতকরণ</text>
+    <!-- Subtitle/Bullets -->
+    <text x="85" y="145" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">পোশাকের মান যাচাই</text>
+    <text x="85" y="170" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">বয়স অনুযায়ী শ্রেণীবিন্যাস</text>
+    <text x="85" y="195" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">নিরাপদ প্যাকেজিং</text>
+    <!-- Tag -->
+    <rect x="25" y="215" width="120" height="6" rx="3" fill="#4A90E2" />
+  </g>
+
+  <!-- Arrow 2 to 3 -->
+  <g transform="translate(460, 220)">
+    <circle cx="10" cy="10" r="14" fill="#4A90E2" />
+    <polygon points="8,4 16,10 8,16" fill="#FFFFFF" />
+  </g>
+
+  <!-- Step 3 Card -->
+  <g transform="translate(490, 130)">
+    <rect width="170" height="240" rx="16" fill="#FFFFFF" filter="url(#cardShadow)" stroke="#E2E8F0" stroke-width="1.5" />
+    <!-- Number Badge -->
+    <circle cx="85" cy="45" r="28" fill="url(#primaryGrad)" />
+    <text x="85" y="53" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF">৩</text>
+    <!-- Title -->
+    <text x="85" y="110" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="16" font-weight="bold" fill="#0F172A">এলাকা ও প্রাপক বাছাই</text>
+    <!-- Subtitle/Bullets -->
+    <text x="85" y="145" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">শীতার্ত এলাকা জরিপ</text>
+    <text x="85" y="170" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">প্রকৃত অসহায়দের তালিকা</text>
+    <text x="85" y="195" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">টোকেন ও স্লিপ বিতরণ</text>
+    <!-- Tag -->
+    <rect x="25" y="215" width="120" height="6" rx="3" fill="#4A90E2" />
+  </g>
+
+  <!-- Arrow 3 to 4 -->
+  <g transform="translate(675, 220)">
+    <circle cx="10" cy="10" r="14" fill="url(#accentGrad)" />
+    <polygon points="8,4 16,10 8,16" fill="#FFFFFF" />
+  </g>
+
+  <!-- Step 4 Card (Highlighted) -->
+  <g transform="translate(705, 130)">
+    <rect width="170" height="240" rx="16" fill="#FFFFFF" filter="url(#cardShadow)" stroke="#FF9933" stroke-width="2" />
+    <!-- Number Badge -->
+    <circle cx="85" cy="45" r="28" fill="url(#accentGrad)" />
+    <text x="85" y="53" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF">৪</text>
+    <!-- Title -->
+    <text x="85" y="110" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="16" font-weight="bold" fill="#0F172A">উষ্ণতা পৌঁছে দেওয়া</text>
+    <!-- Subtitle/Bullets -->
+    <text x="85" y="145" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">সরাসরি বিতরণ ক্যাম্প</text>
+    <text x="85" y="170" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">ঘরে ঘরে গিয়ে প্রদান</text>
+    <text x="85" y="195" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="12" fill="#475569">ফলাফল ও ছবি প্রকাশ</text>
+    <!-- Tag -->
+    <rect x="25" y="215" width="120" height="6" rx="3" fill="#FF9933" />
+  </g>
+
+  <!-- Bottom Footer Note -->
+  <text x="450" y="415" text-anchor="middle" font-family="'Hind Siliguri', 'Kalpurush', sans-serif" font-size="13" font-weight="500" fill="#2563EB">
+    ♥ আপনার ছোট অনুদানও ছড়িয়ে দিতে পারে অপার উষ্ণতা ও আনন্দ
+  </text>
+</svg>
