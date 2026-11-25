@@ -383,7 +383,6 @@ export async function handleApiRequest(req, res, context) {
       });
     }
 
-    $2
     if (action === "auth-register" && method === "POST") {
       const input = await parseBody();
       const email = cleanText(input?.email, 254).toLowerCase();
