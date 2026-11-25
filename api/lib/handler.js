@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import {
   isSupabaseConfigured,
+  getSupabase,
   dbGetSetting,
   dbSetSetting,
   dbGetDonations,
@@ -66,7 +67,7 @@ async function verifyAdmin(authHeader, adminEmailHeader, clientUser) {
     const token = authHeader.slice(7).trim();
 
     // Check with Supabase Auth first (for real Google OAuth tokens)
-    if (useSupabase) {
+    if (isSupabaseConfigured()) {
       const client = getSupabase();
       if (client) {
         try {
@@ -85,7 +86,7 @@ async function verifyAdmin(authHeader, adminEmailHeader, clientUser) {
     try {
       const parts = token.split(".");
       if (parts.length === 3) {
-        const payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
+        const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
         if (payload?.exp && payload.exp * 1000 < Date.now()) {
           return { ok: false, error: "সেশনের মেয়াদ শেষ হয়েছে। আবার লগইন করুন।" };
         }
@@ -959,7 +960,7 @@ export async function handleApiRequest(req, res, context) {
             await dbSetSetting("settings", settings);
           }
           memoryContent.set("settings", settings);
-          return send({ success: true, value: settings });
+          return send({ success: true, value: settings, persistence: useSupabase ? "database" : "temporary" });
         }
 
         if (value.kind === "campaigns" && Array.isArray(value.campaigns) && value.campaigns.length <= 100) {
@@ -1002,7 +1003,7 @@ export async function handleApiRequest(req, res, context) {
             await dbSetSetting("campaigns", campaigns);
           }
           memoryContent.set("campaigns", campaigns);
-          return send({ success: true, campaigns });
+          return send({ success: true, campaigns, persistence: useSupabase ? "database" : "temporary" });
         }
 
         return send({ error: "পরিচিতির ধরন সঠিক নয়।" }, 400);
