@@ -168,15 +168,7 @@ export default async (request, context) => {
 
   try {
     if (action === "public-settings" && request.method === "GET") {
-      const data = await safeStoreGet(contentStore, memoryContent, "settings", {
-        siteName: "আল আহসান ফাউন্ডেশন",
-        logo: "/Warm-Hearts-Initiative.png",
-        primaryColor: "#4A90E2",
-        overview: "মানবিক সহায়তা ও শীতবস্ত্র বিতরণের মাধ্যমে সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াই।",
-        overviewImage: "",
-        sliderAutoplayDelay: 5,
-        heroSlides: null,
-      });
+      const data = await safeStoreGet(contentStore, memoryContent, "settings", null);
       return json(data);
     }
 
@@ -393,14 +385,150 @@ export default async (request, context) => {
           const rawDelay = Number(value.settings?.sliderAutoplayDelay);
           const sliderAutoplayDelay = Number.isFinite(rawDelay) && rawDelay >= 1 && rawDelay <= 60 ? rawDelay : 5;
 
+          const rawAbout = value.settings?.about && typeof value.settings.about === "object" ? value.settings.about : null;
+          let about = null;
+          if (rawAbout) {
+            let teamMembers = null;
+            if (Array.isArray(rawAbout.teamMembers)) {
+              teamMembers = rawAbout.teamMembers.slice(0, 50).map((m, idx) => ({
+                id: m.id || (idx + 1),
+                name: cleanText(m.name, 100),
+                role: cleanText(m.role, 120),
+                image: cleanText(m.image, 3_000_000) || "",
+                bio: cleanText(m.bio, 500) || "",
+              }));
+            }
+            about = {
+              headerTitle: cleanText(rawAbout.headerTitle, 140),
+              headerSubtitle: cleanText(rawAbout.headerSubtitle, 300),
+              missionTitle: cleanText(rawAbout.missionTitle, 140),
+              missionText1: cleanText(rawAbout.missionText1, 2000),
+              missionText2: cleanText(rawAbout.missionText2, 2000),
+              missionImage: cleanText(rawAbout.missionImage, 3_000_000),
+              visionTitle: cleanText(rawAbout.visionTitle, 140),
+              visionText: cleanText(rawAbout.visionText, 2000),
+              ctaTitle: cleanText(rawAbout.ctaTitle, 140),
+              ctaSubtitle: cleanText(rawAbout.ctaSubtitle, 300),
+              ctaButtonText: cleanText(rawAbout.ctaButtonText, 60),
+              ctaButtonLink: cleanText(rawAbout.ctaButtonLink, 200) || "/donate",
+              teamSectionTitle: cleanText(rawAbout.teamSectionTitle, 140),
+              teamMembers,
+            };
+          }
+
+          const rawHow = value.settings?.howItWorks && typeof value.settings.howItWorks === "object" ? value.settings.howItWorks : null;
+          let howItWorks = null;
+          if (rawHow) {
+            let steps = null;
+            if (Array.isArray(rawHow.steps)) {
+              steps = rawHow.steps.slice(0, 20).map((s, idx) => ({
+                id: s.id || (idx + 1),
+                stepNumber: cleanText(s.stepNumber, 20) || String(idx + 1),
+                title: cleanText(s.title, 140),
+                description: cleanText(s.description, 600),
+              }));
+            }
+            howItWorks = {
+              title: cleanText(rawHow.title, 140),
+              steps,
+              divisionsTitle: cleanText(rawHow.divisionsTitle, 140),
+              divisionsSubtitle: cleanText(rawHow.divisionsSubtitle, 300),
+              divisions: cleanText(rawHow.divisions, 500),
+              flowchartImage: cleanText(rawHow.flowchartImage, 3_000_000),
+            };
+          }
+
+          const rawTestimonials = value.settings?.testimonials && typeof value.settings.testimonials === "object" ? value.settings.testimonials : null;
+          let testimonials = null;
+          if (rawTestimonials) {
+            let items = null;
+            if (Array.isArray(rawTestimonials.items)) {
+              items = rawTestimonials.items.slice(0, 50).map((item, idx) => ({
+                id: item.id || (idx + 1),
+                name: cleanText(item.name, 100),
+                role: cleanText(item.role, 100),
+                image: cleanText(item.image, 3_000_000),
+                message: cleanText(item.message, 1500),
+                location: cleanText(item.location, 80),
+                title: cleanText(item.title, 140),
+              }));
+            }
+            testimonials = {
+              title: cleanText(rawTestimonials.title, 140),
+              items,
+            };
+          }
+
+          const rawFaqs = value.settings?.faqs && typeof value.settings.faqs === "object" ? value.settings.faqs : null;
+          let faqs = null;
+          if (rawFaqs) {
+            let items = null;
+            if (Array.isArray(rawFaqs.items)) {
+              items = rawFaqs.items.slice(0, 50).map((item, idx) => ({
+                id: item.id || (idx + 1),
+                question: cleanText(item.question, 300),
+                answer: cleanText(item.answer, 2500),
+              }));
+            }
+            faqs = {
+              title: cleanText(rawFaqs.title, 140),
+              items,
+            };
+          }
+
+          const rawContact = value.settings?.contact && typeof value.settings.contact === "object" ? value.settings.contact : null;
+          let contact = null;
+          if (rawContact) {
+            contact = {
+              headerTitle: cleanText(rawContact.headerTitle, 140),
+              headerSubtitle: cleanText(rawContact.headerSubtitle, 300),
+              formTitle: cleanText(rawContact.formTitle, 140),
+              formSubtitle: cleanText(rawContact.formSubtitle, 300),
+              phone: cleanText(rawContact.phone, 40),
+              email: cleanText(rawContact.email, 120),
+              address: cleanText(rawContact.address, 200),
+              ctaTitle: cleanText(rawContact.ctaTitle, 140),
+              ctaSubtitle: cleanText(rawContact.ctaSubtitle, 300),
+              ctaButtonText: cleanText(rawContact.ctaButtonText, 60),
+              ctaButtonLink: cleanText(rawContact.ctaButtonLink, 200) || "/donate",
+              facebookUrl: cleanText(rawContact.facebookUrl, 300),
+              twitterUrl: cleanText(rawContact.twitterUrl, 300),
+              instagramUrl: cleanText(rawContact.instagramUrl, 300),
+              youtubeUrl: cleanText(rawContact.youtubeUrl, 300),
+              linkedinUrl: cleanText(rawContact.linkedinUrl, 300),
+              footerDescription: cleanText(rawContact.footerDescription, 600),
+              bkashNumber: cleanText(rawContact.bkashNumber, 30),
+              nagadNumber: cleanText(rawContact.nagadNumber, 30),
+              rocketNumber: cleanText(rawContact.rocketNumber, 30),
+            };
+          }
+
+          let rootTeam = null;
+          if (Array.isArray(value.settings?.teamMembers)) {
+            rootTeam = value.settings.teamMembers.slice(0, 50).map((m, idx) => ({
+              id: m.id || (idx + 1),
+              name: cleanText(m.name, 100),
+              role: cleanText(m.role, 120),
+              image: cleanText(m.image, 3_000_000) || "",
+              bio: cleanText(m.bio, 500) || "",
+            }));
+          }
+
           const settings = {
-            siteName: cleanText(value.settings?.siteName, 80),
-            logo: cleanText(value.settings?.logo, 3_000_000),
+            siteName: cleanText(value.settings?.siteName, 80) || "আল আহসান ফাউন্ডেশন",
+            logo: cleanText(value.settings?.logo, 3_000_000) || "/Warm-Hearts-Initiative.png",
             primaryColor: /^#[0-9a-f]{6}$/i.test(value.settings?.primaryColor || "") ? value.settings.primaryColor : "#4A90E2",
+            overviewTitle: cleanText(value.settings?.overviewTitle, 140) || "আল আহসান ফাউন্ডেশন সম্পর্কে",
             overview: cleanText(value.settings?.overview, 3000),
             overviewImage: cleanText(value.settings?.overviewImage, 3_000_000),
             sliderAutoplayDelay,
             heroSlides,
+            about: about || (rootTeam ? { teamMembers: rootTeam } : null),
+            howItWorks,
+            testimonials,
+            faqs,
+            contact,
+            teamMembers: rootTeam || about?.teamMembers || null,
           };
           await safeStoreSet(contentStore, memoryContent, "settings", settings);
           return json({ success: true, value: settings });

@@ -24,7 +24,7 @@ const AboutUs = () => {
       </header>
 
       {/* Mission Section */}
-      <section className="container mx-auto px-4 py-10">
+      <section className="container mx-auto px-4 py-12 scroll-mt-24">
         <div className="flex flex-col md:flex-row items-center gap-8">
           <div className="md:w-1/2">
             <img
@@ -64,7 +64,7 @@ const AboutUs = () => {
       </section>
 
       {/* Team / Executive Committee Section */}
-      <section className="container mx-auto px-4 py-10">
+      <section className="container mx-auto px-4 py-12 scroll-mt-24">
         <h2 className="text-3xl font-semibold text-gray-800 text-center mb-8">
           {about.teamSectionTitle || "আমাদের দলের সঙ্গে পরিচিত হোন"}
         </h2>

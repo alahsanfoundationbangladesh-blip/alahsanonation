@@ -40,20 +40,23 @@ export const DEFAULT_TEAM = [
   {
     id: 1,
     name: "আব্দুল জব্বার আল নাহিদ",
-    role: "প্রতিষ্ঠাতা ও প্রধান নির্বাহী",
+    role: "প্রতিষ্ঠাতা ও নির্বাহী পরিচালক",
     image: "https://i.ibb.co.com/XZdP5hF/2023-05-15-1.jpg",
+    bio: "আল আহসান ফাউন্ডেশনের প্রতিষ্ঠাতা ও প্রধান নির্বাহী।",
   },
   {
     id: 2,
-    name: "হরি রবিচন্দ্রন",
-    role: "প্রধান পরিচালন কর্মকর্তা",
+    name: "মুফতি মুহিউস সুন্নাহ",
+    role: "প্রধান উপদেষ্টা",
     image: "https://i.ibb.co.com/xLVb14x/website-photos-2.webp",
+    bio: "উপদেষ্টা পরিষদ প্রধান ও মানবিক কার্যক্রম সমন্বয়ক।",
   },
   {
     id: 3,
-    name: "শামশ হাদি",
-    role: "বিপণন প্রধান",
+    name: "মো. শামীম এহসান",
+    role: "সমন্বয়ক ও প্রশাসন",
     image: "https://i.ibb.co.com/nsgmKpH/Shamsh-Hadi.jpg",
+    bio: "মাঠ পর্যায় ও ভলান্টিয়ার সমন্বয় প্রধান।",
   },
 ];
 
@@ -105,7 +108,7 @@ export const DEFAULT_HOW_IT_WORKS = {
   divisionsTitle: "কার্যক্রমের বিভাগ",
   divisionsSubtitle: "বর্তমানে আমরা নিচের বিভাগগুলোতে কাজ করছি:",
   divisions: "ঢাকা, চট্টগ্রাম, সিলেট, খুলনা, রাজশাহী, বরিশাল, রংপুর, ময়মনসিংহ",
-  flowchartImage: "https://i.ibb.co.com/pdMxkdK/a-visually-appealing-flowchart-illustrating-the-st-n-2t-Zgx-NRS2grbs-Tme-Rm-MA-v-BCXOUft-Sk66m4-J9-B.jpg",
+  flowchartImage: "/flowchart-bangla.svg",
 };
 
 export const DEFAULT_TESTIMONIALS = {
